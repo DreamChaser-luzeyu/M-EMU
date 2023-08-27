@@ -35,6 +35,8 @@ RVCore* rv_1_ptr;
 void test_run()
 {
 
+    // Build opensbi with
+    // `make CROSS_COMPILE=riscv64-unknown-linux-gnu- PLATFORM=generic PLATFORM_RISCV_ISA=rv64ima_zicsr_zifencei FW_FDT_PATH=cemu.dtb`
 
 //    int argc;
 //    const char* argv[10];
