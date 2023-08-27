@@ -9,11 +9,12 @@
 #include "memory_bus.hpp"
 #include "uartlite.hpp"
 #include "ram.hpp"
-#include "rv_core.hpp"
+#include "RVCore.hpp"
 #include "rv_systembus.hpp"
 #include "rv_clint.hpp"
-#include "rv_plic.hpp"
+#include "RVInt.hpp"
 
+bool riscv_test = false;
 
 void uart_input(uartlite& uart)
 {
@@ -28,32 +29,34 @@ void uart_input(uartlite& uart)
     }
 }
 
+RVCore* rv_0_ptr;
+RVCore* rv_1_ptr;
+
 void test_run()
 {
-    rv_core* rv_0_ptr;
-    rv_core* rv_1_ptr;
 
-    int argc;
-    const char* argv[10];
-    const char* load_path = "../opensbi/build/platform/generic/firmware/fw_payload.bin";
-    if (argc >= 2) load_path = argv[1];
-    for (int i = 1; i < argc; i++)
-        if (strcmp(argv[i], "-rvtest") == 0) riscv_test = true;
+
+//    int argc;
+//    const char* argv[10];
+    const char* load_path = "/home/luzeyu/temp/opensbi/build/platform/generic/firmware/fw_payload.bin";
+//    if (argc >= 2) load_path = argv[1];
+//    for (int i = 1; i < argc; i++)
+//        if (strcmp(argv[i], "-rvtest") == 0) riscv_test = true;
 
     rv_systembus system_bus;
 
     uartlite uart;
     rv_clint<2> clint;
-    rv_plic<4, 4> plic;
+    RVInt<4, 4> plic;
     ram dram(4096l * 1024l * 1024l, load_path);
     assert(system_bus.add_dev(0x2000000, 0x10000, &clint));
     assert(system_bus.add_dev(0xc000000, 0x4000000, &plic));
     assert(system_bus.add_dev(0x60100000, 1024 * 1024, &uart));
     assert(system_bus.add_dev(0x80000000, 2048l * 1024l * 1024l, &dram));
 
-    rv_core rv_0(system_bus, 0);
+    RVCore rv_0(system_bus, 0);
     rv_0_ptr = &rv_0;
-    rv_core rv_1(system_bus, 1);
+    RVCore rv_1(system_bus, 1);
     rv_1_ptr = &rv_1;
 
     std::thread uart_input_thread(uart_input, std::ref(uart));

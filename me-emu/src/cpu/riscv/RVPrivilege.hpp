@@ -8,15 +8,16 @@
 
 #include "rv_common.hpp"
 #include "rv_systembus.hpp"
-#include "rv_sv39.hpp"
+#include "RVTLB_SV39.hpp"
 
 extern bool riscv_test;
 
-class rv_priv {
+class RVPrivilege {
 public:
-    rv_priv(uint64_t hart_id, uint64_t &pc, rv_systembus &bus):hart_id(hart_id),cur_pc(pc),bus(bus),sv39(bus) {
+    RVPrivilege(uint64_t hart_id, uint64_t &pc, rv_systembus &bus): hart_id(hart_id), cur_pc(pc), bus(bus), sv39(bus) {
         reset();
     }
+
     void reset() {
         trap_pc = 0;
         cur_need_trap = false;
@@ -343,9 +344,19 @@ public:
         if ( (((csr_index >> 10) & 3) == 3) && write) return false;
         return true;
     }
-    // Note: The core should raise exceptions when return value is not exc_custom_ok.
-    // fetch instruction
+
+    // --- Virtual Address Support
+    // @note The core should raise exceptions when return value is not exc_custom_ok.
+    /**
+     * Instruction fetch
+     * @param start_addr
+     * @param size
+     * @param buffer
+     * @param bad_va
+     * @return Execution result
+     */
     rv_exc_code va_if(uint64_t start_addr, uint64_t size, uint8_t *buffer, uint64_t &bad_va) {
+        // Address is not 4-byte aligned
         if (size == 4 && start_addr % 4 == 2) {
             rv_exc_code res0 = va_if(start_addr,2,buffer,bad_va);
             if (res0 != exc_custom_ok) return res0;
@@ -516,7 +527,8 @@ public:
             else return exc_custom_ok;
         }
     }
-    
+
+    // --- Privilege instruction
     void ecall() {
         csr_cause_def cause;
         cause.cause = cur_priv + 8;
@@ -679,7 +691,7 @@ private:
     uint64_t trap_pc;
     priv_mode next_priv;
     // sv39
-    rv_sv39<32> sv39;
+    RVTLB_SV39<32> sv39;
     // pbus
     rv_systembus &bus;
     // CSRs

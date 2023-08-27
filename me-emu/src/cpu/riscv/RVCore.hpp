@@ -5,7 +5,7 @@
 #include "rv_common.hpp"
 #include <assert.h>
 #include "rv_systembus.hpp"
-#include "rv_priv.hpp"
+#include "RVPrivilege.hpp"
 #include <deque>
 
 extern bool riscv_test;
@@ -20,9 +20,9 @@ enum alu_op {
 
 #define PC_ALIGN 2
 
-class rv_core {
+class RVCore {
 public:
-    rv_core(rv_systembus &systembus, uint8_t hart_id = 0):systembus(systembus),priv(hart_id,pc,systembus) {
+    RVCore(rv_systembus &systembus, uint8_t hart_id = 0): systembus(systembus), priv(hart_id, pc, systembus) {
         for (int i=0;i<32;i++) GPR[i] = 0;
     }
     void step(bool meip, bool msip, bool mtip, bool seip) {
@@ -43,8 +43,16 @@ private:
     std::queue <uint64_t> trace;
     rv_systembus &systembus;
     uint64_t pc = 0;
-    rv_priv priv;
+    RVPrivilege priv;
     int64_t GPR[32];
+
+    /**
+     * Execute instruction
+     * @param meip
+     * @param msip
+     * @param mtip
+     * @param seip
+     */
     void exec(bool meip, bool msip, bool mtip, bool seip) {
         if (riscv_test && priv.get_cycle() >= 1000000) {
             printf("Test timeout! at pc 0x%lx\n",pc);
@@ -885,6 +893,8 @@ private:
         else if (!new_pc) pc = pc + (is_rvc ? 2 : 4);
         priv.post_exec();
     }
+
+
     bool mem_read(uint64_t start_addr, uint64_t size, uint8_t *buffer) {
         if (start_addr % size != 0) {
             priv.raise_trap(csr_cause_def(exc_load_misalign),start_addr);
@@ -900,6 +910,7 @@ private:
             return false;
         }
     }
+
     bool mem_write(uint64_t start_addr, uint64_t size, const uint8_t *buffer) {
         if (start_addr % size != 0) {
             priv.raise_trap(csr_cause_def(exc_store_misalign),start_addr);

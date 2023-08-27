@@ -8,9 +8,9 @@
 
 // We need 2 context corresponding to meip and seip per hart.
 template <int nr_source = 1, int nr_context = 2>
-class rv_plic : public mmio_dev {
+class RVInt : public mmio_dev {
 public:
-    rv_plic() {
+    RVInt() {
         for (int i=0;i<(nr_source+1);i++) {
             priority[i] = 0;
         }
@@ -24,9 +24,21 @@ public:
             claim[i] = 0;
         }
     }
+
+    /**
+     * Check and pend interrupts for peripheral
+     * @param source_id ID of the interrupt
+     * @param fired If an interrupt is triggered
+     */
     void update_ext(int source_id, bool fired) {
         if (fired) pending[source_id/32] |= 1u << (source_id % 32);
     }
+
+    /**
+     *
+     * @param context_id
+     * @return
+     */
     bool get_int(int context_id) {
         uint64_t max_priority = 0;
         uint64_t max_priority_int = 0;
@@ -42,6 +54,15 @@ public:
         else claim[context_id] = 0;
         return claim[context_id] != 0;
     }
+
+    /**
+     * Read data from memory
+     * @param start_addr Start address of memory (physical address)
+     * @param size
+     * @param buffer Your buffer
+     * @return true  - success
+     *         false - fail
+     */
     bool do_read(uint64_t start_addr, uint64_t size, unsigned char* buffer) {
         assert(size == 4);
         if (start_addr + size <= 0x1000) { // [0x4,0x1000] interrupt source priority
@@ -84,20 +105,34 @@ public:
         }
         return true;
     }
+
+    /**
+     * Write data to memory
+     * @param start_addr Start address of memory (physical address)
+     * @param size
+     * @param buffer Your data
+     * @return true  - success
+     *         false - fail
+     */
     bool do_write(uint64_t start_addr, uint64_t size, const unsigned char* buffer) {
-        if (start_addr + size <= 0x1000) { // [0x4,0x1000] interrupt source priority
+        // --- MMIO interrupt controller
+        // [0x4,0x1000] interrupt source priority
+        if (start_addr + size <= 0x1000) {
             if (start_addr == 0) return false;
             if (start_addr > 4 * nr_source || start_addr + size > 4 * (nr_source + 1)) return false;
             priority[start_addr/4] = *((uint32_t*)buffer);
             return true;
         }
-        else if (start_addr + size <= 0x1080) { // [0x1000,0x1080] interrupt pending bits
+        // [0x1000,0x1080] interrupt pending bits
+        else if (start_addr + size <= 0x1080) {
             return true;
         }
         else if (start_addr + size <= 0x2000) {
             return false;   // error
         }
-        else if (start_addr + size <= 0x200000) { // enable bits for sources on context
+
+        // enable bits for sources on context
+        else if (start_addr + size <= 0x200000) {
             uint64_t context_id = (start_addr - 0x2000) / 0x80;
             uint64_t pos = start_addr % 0x80;
             if (context_id >= nr_context) return false;
@@ -123,10 +158,12 @@ public:
         return true;
     }
 private:
+    // --- Interrupt fields
     // source 0 is reserved.
-    uint32_t priority[nr_source+1];
-    uint32_t pending[(nr_source+1+31)/32];
-    uint32_t enable[nr_context][(nr_source+1+31)/32];
+    uint32_t priority[nr_source+1];                         // Interrupts, one bit means one interrupt
+                                                            // one index means one priority
+    uint32_t pending[(nr_source+1+31)/32];                  // If interrupt is pending
+    uint32_t enable[nr_context][(nr_source+1+31)/32];       // If interrupt is enable
     uint32_t threshold[nr_context];
     uint32_t claim[nr_context];
     uint32_t claimed[(nr_source+1+31)/32];

@@ -31,9 +31,9 @@ void myassert(bool exp, uint64_t satp, uint64_t va, const char* msg = "") {
 }
 */
 template <unsigned int nr_tlb_entry = 32>
-class rv_sv39 {
+class RVTLB_SV39 {
 public:
-    rv_sv39(rv_systembus &bus):bus(bus){
+    RVTLB_SV39(rv_systembus &bus): bus(bus){
         random = 0;
         for (int i=0;i<nr_tlb_entry;i++) tlb[i].pagesize = 0;
     }

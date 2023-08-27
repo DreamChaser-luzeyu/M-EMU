@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.25)
 project(me_emu)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "-lstdc++fs")
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
@@ -15,5 +16,7 @@ set(
         ${PROJECT_SOURCE_DIR}/main.cpp
         ${ME_EMU_SRCS}
 )
+
+
 
 add_executable(me_emu ${SOURCE_FILES})
