@@ -108,7 +108,7 @@ m6502::Word m6502::CPU::LoadPrg(const Byte* Program, u32 NumBytes, Mem& memory) 
         const Word Hi = Program[At++] << 8;
         LoadAddress   = Lo | Hi;
         for (Word i = LoadAddress; i < LoadAddress + NumBytes - 2; i++) {
-            // TODO: mem copy?
+            // TODO: mmio_bus copy?
             memory[i] = Program[At++];
         }
     }

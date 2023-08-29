@@ -7,8 +7,9 @@ set(CMAKE_CXX_FLAGS "-lstdc++fs")
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 #aux_source_directory(${PROJECT_SOURCE_DIR}/src/cpu/m6502 ME_EMU_SRCS)
-aux_source_directory(${PROJECT_SOURCE_DIR}/src/cpu/riscv ME_EMU_SRCS)
-aux_source_directory(${PROJECT_SOURCE_DIR}/src/mem ME_EMU_SRCS)
+aux_source_directory(src/core/cpu/riscv ME_EMU_SRCS)
+aux_source_directory(src/core/mem ME_EMU_SRCS)
+aux_source_directory(src/core/mmio_bus ME_EMU_SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/test ME_EMU_SRCS)
 
 set(

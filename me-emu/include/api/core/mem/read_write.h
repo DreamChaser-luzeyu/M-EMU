@@ -1,7 +1,0 @@
-
-#ifndef ME_EMU_READ_WRITE_H
-#define ME_EMU_READ_WRITE_H
-
-
-
-#endif //ME_EMU_READ_WRITE_H

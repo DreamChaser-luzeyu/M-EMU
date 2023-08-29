@@ -54,6 +54,8 @@ void test_run()
     assert(system_bus.add_dev(0x2000000, 0x10000, &clint));
     assert(system_bus.add_dev(0xc000000, 0x4000000, &plic));
     assert(system_bus.add_dev(0x60100000, 1024 * 1024, &uart));
+
+
     assert(system_bus.add_dev(0x80000000, 2048l * 1024l * 1024l, &dram));
 
     RVCore rv_0(system_bus, 0);
@@ -70,7 +72,7 @@ void test_run()
         clint.tick();
         plic.update_ext(1, uart.irq());
         rv_0.step(plic.get_int(0), clint.m_s_irq(0), clint.m_t_irq(0), plic.get_int(1));
-        rv_1.step(plic.get_int(2), clint.m_s_irq(1), clint.m_t_irq(1), plic.get_int(3));
+//        rv_1.step(plic.get_int(2), clint.m_s_irq(1), clint.m_t_irq(1), plic.get_int(3));
         while (uart.exist_tx()) {
             char c = uart.getc();
             if (c != '\r') { std::cout << c; }
