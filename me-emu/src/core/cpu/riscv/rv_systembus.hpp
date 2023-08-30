@@ -10,24 +10,37 @@
 #include <utility>
 #include <climits>
 
+#include "api/core/mmio_bus/mmio.h"
+
 // TODO: add pma and check pma
 class rv_systembus {
 public:
     bool pa_read(uint64_t start_addr, uint64_t size, uint8_t *buffer) {
+        // TODO: Replace with ME-EMU functions
+        //                                         This is the key of the map `devices`, this key is meaningless,
+        //                                         just used for binary search  v|v
         auto it = devices.upper_bound(std::make_pair(start_addr,ULONG_MAX));
         if (it == devices.begin()) return false;
         it = std::prev(it);
         uint64_t end_addr = start_addr + size;
+        //  start_addr of dev                               end_addr of dev
         if (it->first.first <= start_addr && end_addr <= it->first.second) {
+            // target addr in dev range
+
+
             uint64_t dev_size = it->first.second - it->first.first;
+            //                                                 the bool  start_addr of dev
             return it->second.first->do_read(it->second.second ? start_addr : start_addr % dev_size, size, buffer);
         }
         else return false;
     }
     bool pa_write(uint64_t start_addr, uint64_t size, const uint8_t *buffer) {
+        // TODO: Replace with ME-EMU functions
         if (start_addr <= lr_pa && lr_pa + size <= start_addr + size) {
             lr_valid = false;
         }
+        // TODO: Take this as a usage reference
+        // `it` is the iterator of a pair
         auto it = devices.upper_bound(std::make_pair(start_addr,ULONG_MAX));
         if (it == devices.begin()) return false;
         it = std::prev(it);
@@ -106,6 +119,7 @@ public:
         return pa_write(pa,size,(uint8_t*)&to_write);
     }
     bool add_dev(uint64_t start_addr, uint64_t length, mmio_dev *dev, bool raw_addr = false) {
+        // TODO: Replace with ME-EMU functions
         std::pair<uint64_t, uint64_t> addr_range = std::make_pair(start_addr,start_addr+length);
         if (start_addr % length) return false;
         // check range
@@ -124,12 +138,26 @@ public:
         // overleap check pass
         devices[addr_range] = std::make_pair(dev, raw_addr);
         return true;
+
+
+//        auto dev_do_read = []()->FuncReturnFeedback_t {};
+//
+//        AddressRegion_t dev_addr_region = {
+////            .dev_read = dev_do_read,
+//            .begin_address = start_addr,
+//            .size = length,
+//        };
+//        RegisterAddrRegionForDev_MMIO_Bus_API(dev_addr_region);
+
+
     }
 private:
     uint64_t lr_pa;
     uint64_t lr_size;
     uint64_t lr_hart;
     bool lr_valid = false;
+
+    // Key: pair<begin_addr, begin_addr>     Value: pair<dev, raw_addr(false by default)>
     std::map < std::pair<uint64_t,uint64_t>, std::pair<mmio_dev*,bool> > devices;
 };
 

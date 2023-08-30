@@ -5,6 +5,7 @@
 #include <unistd.h>
 // --- API include
 #include "api/core/cpu/exec.h"
+#include "api/core/mmio_bus/mmio.h"
 // --- Project include
 #include "memory_bus.hpp"
 #include "uartlite.hpp"
@@ -40,7 +41,7 @@ void test_run()
 
 //    int argc;
 //    const char* argv[10];
-    const char* load_path = "/home/luzeyu/temp/opensbi/build/platform/generic/firmware/fw_payload.bin";
+    const char* load_path = "/home/luzeyu/touchfish/ysys-verilator-study/ME-EMU/fw_payload.bin";
 //    if (argc >= 2) load_path = argv[1];
 //    for (int i = 1; i < argc; i++)
 //        if (strcmp(argv[i], "-rvtest") == 0) riscv_test = true;

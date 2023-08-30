@@ -2,6 +2,7 @@
 #ifndef ME_EMU_PAGING_H
 #define ME_EMU_PAGING_H
 #include "struct/misc/status_enum.h"
+#include "api/core/mmio_bus/mmio.h"
 
 /**
  * @brief Convert physical address to virtual address

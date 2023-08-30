@@ -5,33 +5,41 @@
 #include <cstring>
 #include "api/core/mmio_bus/mmio.h"
 
+AddressRegion_t RAM_AddrRegion_GV;
 uint8_t* PhysicalRAM_GV;
-uint64_t PhysicalRAM_BeginAddr_GV;
-uint64_t PhysicalRAM_Size_GV;
+
+
+static inline FuncReturnFeedback_t ReadBuffer_PhysicalMemAPI (uint64_t begin_addr, size_t size, uint8_t* buffer);
+static inline FuncReturnFeedback_t WriteBuffer_PhysicalMemAPI(uint64_t begin_addr, size_t size, uint8_t* buffer);
 
 FuncReturnFeedback_t InitRAM(uint64_t size, uint64_t begin_addr) {
     PhysicalRAM_GV = new uint8_t[size];
-    PhysicalRAM_BeginAddr_GV = begin_addr;
-    PhysicalRAM_Size_GV = size;
-    return MEMU_OK;
-}
 
-FuncReturnFeedback_t ReadBuffer_PhysicalMemAPI(uint64_t begin_addr, size_t size, uint8_t* buffer) {
-    if(!buffer) { return MEMU_INVALID_PARAM; }
-    if(begin_addr < PhysicalRAM_BeginAddr_GV) { return MEMU_INVALID_PARAM; }
-
-    uint64_t begin_index = begin_addr - PhysicalRAM_BeginAddr_GV;
-    memcpy(buffer, &(PhysicalRAM_GV[begin_index]), size);
+    RAM_AddrRegion_GV.dev_read  = ReadBuffer_PhysicalMemAPI;
+    RAM_AddrRegion_GV.dev_write = WriteBuffer_PhysicalMemAPI;
+    RAM_AddrRegion_GV.begin_address = begin_addr;
+    RAM_AddrRegion_GV.size = size;
+    RAM_AddrRegion_GV.raw_addr = true;
 
     return MEMU_OK;
 }
 
-FuncReturnFeedback_t WriteBuffer_PhysicalMemAPI(uint64_t begin_addr, size_t size, uint8_t* buffer) {
+static inline FuncReturnFeedback_t ReadBuffer_PhysicalMemAPI(uint64_t begin_addr, size_t size, uint8_t* buffer) {
     if(!buffer) { return MEMU_INVALID_PARAM; }
-    if(begin_addr < PhysicalRAM_BeginAddr_GV) { return MEMU_INVALID_PARAM; }
+    if(begin_addr < RAM_AddrRegion_GV.begin_address) { return MEMU_INVALID_PARAM; }
 
-    uint64_t begin_index = begin_addr - PhysicalRAM_BeginAddr_GV;
-    memcpy(&(PhysicalRAM_GV[begin_index]), buffer, size);
+    uint64_t begin_index = begin_addr - RAM_AddrRegion_GV.begin_address;
+    memcpy(buffer, &((PhysicalRAM_GV)[begin_index]), size);
+
+    return MEMU_OK;
+}
+
+static inline FuncReturnFeedback_t WriteBuffer_PhysicalMemAPI(uint64_t begin_addr, size_t size, uint8_t* buffer) {
+    if(!buffer) { return MEMU_INVALID_PARAM; }
+    if(begin_addr < RAM_AddrRegion_GV.begin_address) { return MEMU_INVALID_PARAM; }
+
+    uint64_t begin_index = begin_addr - RAM_AddrRegion_GV.begin_address;
+    memcpy(&((PhysicalRAM_GV)[begin_index]), buffer, size);
 
     return MEMU_OK;
 }
