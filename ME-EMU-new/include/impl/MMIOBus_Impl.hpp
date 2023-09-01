@@ -6,33 +6,44 @@
 #include "interface/MMIO_Bus.h"
 #include "interface/MMIO_Dev.h"
 
-class MEmu_MMIOBus : MMIOBus_I {
+// TODO: Replace assert with better way of handling error
+
+class MEmu_MMIOBus : public MMIOBus_I {
     // ----- Fields
 private:
     std::vector<MMIODev_I*> mmioDevs;
     // ----- Interface implementation
 public:
-    FuncReturnFeedback_t PAddr_ReadBuffer_MMIOBus_API(uint64_t begin_addr, size_t size, uint8_t *buffer) override {
+    FuncReturnFeedback_t PAddr_ReadBuffer_MMIOBus_API(uint64_t begin_addr, uint64_t size, uint8_t *buffer) override {
         if(!buffer) { return MEMU_NULL_PTR; }
 
         MMIODevHandle_t dev;
         findDevAccordingToAddr(begin_addr, &dev);
 
         assert(dev);
-        if(dev->getAddressingMode() == MMIO_DEV_ADDRESS_TYPE_RELATIVE) {
+//        if(dev->getAddressingMode() == MMIO_DEV_ADDRESS_TYPE_RELATIVE) {
             dev->ReadBuffer_MMIODev_API(begin_addr - dev->getDevBaseAddr(), size, buffer);
-        }
+//        }
 
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t PAddr_WriteBuffer_MMIOBus_API(uint64_t begin_addr, size_t size, uint8_t *buffer) override {
+    FuncReturnFeedback_t PAddr_WriteBuffer_MMIOBus_API(uint64_t begin_addr, uint64_t size, const uint8_t *buffer) override {
         if(!buffer) { return MEMU_NULL_PTR; }
+
+        MMIODevHandle_t dev;
+        findDevAccordingToAddr(begin_addr, &dev);
+
+        assert(dev);
+//        if(dev->getAddressingMode() == MMIO_DEV_ADDRESS_TYPE_RELATIVE) {
+            dev->WriteBuffer_MMIODev_API(begin_addr - dev->getDevBaseAddr(), size, buffer);
+//        }
 
         return MEMU_OK;
     }
 
     FuncReturnFeedback_t RegisterMMIODev_MMIOBus_API(MMIODev_I* dev, uint64_t base_addr) override {
+        // Set dev base address to device
         dev->setDevBaseAddr(base_addr);
         // Check if address region conflicts
         for(auto d : mmioDevs) { if(dev->isAddrRegionConflict(d)) { assert(0); } }
@@ -46,8 +57,11 @@ public:
         return MEMU_OK;
     }
     // ----- Constructor & Destructor
+public:
+    MEmu_MMIOBus() : MMIOBus_I() {}
 
     // ----- Member functions
+public:
     FuncReturnFeedback_t findDevAccordingToAddr(uint64_t addr, MMIODevHandle_t* dev_ret) {
         // TODO: Replace with binary search for better performance
         for(auto d : this->mmioDevs) {
