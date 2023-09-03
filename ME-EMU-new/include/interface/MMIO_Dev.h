@@ -16,7 +16,6 @@ protected:
     uint64_t devBaseAddr;
     uint64_t addrRegionSize;
 
-//    AddrType_enum addressingMode;
     // ----- Interfaces
 public:
     // The `begin_addr` and `begin_addr + size` should be in region [0, addrRegionSize]
@@ -24,7 +23,7 @@ public:
 
     virtual FuncReturnFeedback_t WriteBuffer_MMIODev_API(uint64_t begin_addr, uint64_t size, const uint8_t* buffer) = 0;
 
-
+    virtual bool GetIrqStatus() { return false; }
 
     // ----- Constructor & Destructor
 private:

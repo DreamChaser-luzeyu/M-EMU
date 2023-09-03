@@ -49,8 +49,8 @@ void test_run()
     rv_systembus system_bus;
 
     uartlite uart;
-    rv_clint<2> clint;
-    RVInt<4, 4> plic;
+    rv_clint<2> clint;      // to be merged into core
+    RVInt<4, 4> plic;       // interrupt controller
     ram dram(4096l * 1024l * 1024l, load_path);
     assert(system_bus.add_dev(0x2000000, 0x10000, &clint));
     assert(system_bus.add_dev(0xc000000, 0x4000000, &plic));

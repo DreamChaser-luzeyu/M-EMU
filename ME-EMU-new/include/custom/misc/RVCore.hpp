@@ -45,14 +45,19 @@ private:
     rv_systembus &systembus;
     uint64_t pc = 0;
     RVPrivilege priv;
-    int64_t GPR[32];
+    int64_t GPR[32];            ///< General purpose registers
 
     /**
      * Execute instruction
-     * @param meip
-     * @param msip
-     * @param mtip
-     * @param seip
+     * @param meip The MEIP field in mip is a read-only bit that indicates a machine-mode external interrupt is pending.
+     *             MEIP is set and cleared by a platform-specific interrupt controller.
+     * @param msip The machine-level MSIP bits are written by accesses to memory-mapped control registers, which are
+     *             used by remote harts to provide machine-mode inter-processor interrupts.
+     * @param mtip The MTIP bit is read-only and is cleared by writing to the memory-mapped machine-mode timer compare
+     *             register.
+     * @param seip The SEIP field in mip contains a single read-write bit.
+     *             SEIP may be written by M-mode soft-ware to indicate to S-mode that an external interrupt is pending.
+     *             Additionally, the platform-level interrupt controller may generate supervisor-level external interrupt.
      */
     void exec(bool meip, bool msip, bool mtip, bool seip) {
         if (riscv_test && priv.get_cycle() >= 1000000) {

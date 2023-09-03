@@ -13,7 +13,11 @@
 
 #include "impl/MMIOBus_Impl.hpp"
 #include "impl/MMIOMem_Impl.hpp"
-#include "impl/MMIODev_CustomUART_Adapter.hpp"
+#include "impl/MMIODev_CEmuAdapter.hpp"
+#include "impl/Processor_CEmuAdapter.hpp"
+#include "impl/MMIOIntCtrl_CEmuAdapter.h"
+#include "interface/CoreIntCtrlBridge.h"
+#include "interface/IntCtrl.h"
 
 // TODO: Replace branch with `likely`
 
@@ -37,16 +41,14 @@ void uart_input(uartlite* uart)
     }
 }
 
-typedef uint64_t size_t;
+// TODO: Replace with smart pointer
 
-int main()
-{
-//    std::cout << "Hello, World!" << std::endl;
+int main() {
 
     MMIODev_I* sys_ram = new MEmu_MMIO_Mem(1024 * 1024 * 4096l);
     sysBus.RegisterMMIODev_MMIOBus_API(sys_ram, 0x80000000);
 
-    const char* init_file = "/home/luzeyu/touchfish/ysys-verilator-study/ME-EMU/fw_payload.bin";
+    const char* init_file = "/media/luzeyu/Files/Study/verilator/ME-EMU/fw_payload.bin";
     std::ifstream file(init_file,std::ios::in | std::ios::binary);
     uint64_t file_size = std::filesystem::file_size(init_file);
     uint8_t* bin_data = new uint8_t[file_size];
@@ -75,14 +77,20 @@ int main()
     rv_1.set_GPR(10, 1);
 
     while (1) {
-        RVCoreLocalInt<2>* clint = ((RVCoreLocalInt<2>*)(((CemuDevAdapter*)rv_cli)->getCEMUDev()));
-        RVPLICtrl<4,4>* plic = ((RVPLICtrl<4,4>*)(((CemuDevAdapter*)(rv_plic))->getCEMUDev()));
+        RVCoreLocalInt<2>* core_local_int_ctrl = ((RVCoreLocalInt<2>*)(((CemuDevAdapter*)rv_cli)->getCEMUDev()));
+        RVPLICtrl<4,4>* platform_level_int_ctrl = ((RVPLICtrl<4,4>*)(((CemuDevAdapter*)(rv_plic))->getCEMUDev()));
         uartlite* uart = (uartlite*)(((CemuDevAdapter*)(rv_uart))->getCEMUDev());
 
-        clint->tick();
-        plic->update_ext(1, uart->irq());
-        rv_0.step(plic->get_int(0), clint->m_s_irq(0), clint->m_t_irq(0), plic->get_int(1));
-        rv_1.step(plic->get_int(2), clint->m_s_irq(1), clint->m_t_irq(1), plic->get_int(3));
+        core_local_int_ctrl->tick();
+        platform_level_int_ctrl->update_ext(1, uart->irq());
+
+        rv_0.step(platform_level_int_ctrl->get_int(0), core_local_int_ctrl->m_s_irq(0),
+                  core_local_int_ctrl->m_t_irq(0), platform_level_int_ctrl->get_int(1));
+
+        rv_1.step(platform_level_int_ctrl->get_int(2), core_local_int_ctrl->m_s_irq(1),
+                  core_local_int_ctrl->m_t_irq(1), platform_level_int_ctrl->get_int(3));
+
+
         while (uart->exist_tx()) {
             char c = uart->getc();
             if (c != '\r') { std::cout << c; }

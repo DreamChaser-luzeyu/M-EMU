@@ -42,7 +42,7 @@ public:
     bool get_int(int context_id) {
         uint64_t max_priority = 0;
         uint64_t max_priority_int = 0;
-        for (int i=1;i<=nr_source;i++) {
+        for (int i=1;i<=nr_source;i++) {        // 0 means no int ?
             if (priority[i] >= threshold[context_id] && ((pending[i/32]>>(i%32))&1) && ((enable[context_id][i/32]>>(i%32))&1) && !((claimed[i/32]>>(i%32))&1)) {
                 if (priority[i] > max_priority) {
                     max_priority = priority[i];

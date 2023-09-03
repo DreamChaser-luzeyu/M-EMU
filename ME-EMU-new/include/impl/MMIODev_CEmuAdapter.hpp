@@ -29,6 +29,8 @@ public:
         if(!feedback) { return MEMU_UNKNOWN; }
         return MEMU_OK;
     }
+
+    bool GetIrqStatus() override { return cemuDev->irq(); }
     // ----- Constructor & Destructor
 public:
     explicit CemuDevAdapter(mmio_dev* cemu_dev, uint64_t size): MMIODev_I(0x00, size), cemuDev(cemu_dev) {}

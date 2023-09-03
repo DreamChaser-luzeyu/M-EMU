@@ -80,7 +80,7 @@ public:
         std::unique_lock<std::mutex> lock(tx_lock);
         return !tx.empty();
     }
-    bool irq() {
+    bool irq() override {
         std::unique_lock<std::mutex> lock(rx_lock);
         return !rx.empty() || wait_ack;
     }
