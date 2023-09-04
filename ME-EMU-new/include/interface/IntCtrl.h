@@ -4,6 +4,9 @@
 #include "misc/status_enum.h"
 #include "interface/Processor.h"
 
+struct IntStatus;
+typedef IntStatus IntStatus_t;
+
 class IntCtrl_I : public MMIODev_I {
     // ----- Fields
 private:
@@ -16,7 +19,7 @@ public:
     virtual FuncReturnFeedback_t UnregisterDev_IntCtrl_API(MMIODev_I* dev) = 0;
     virtual FuncReturnFeedback_t UpdateIntState_IntCtrl_API() = 0;
     // ----- Constructor & Destructor
-    IntCtrl_I(uint64_t devBaseAddr, uint64_t memRegionSize) : MMIODev_I(devBaseAddr, memRegionSize) {}
+    IntCtrl_I(uint64_t devBaseAddr, uint64_t memRegionSize) :
+        MMIODev_I(devBaseAddr, memRegionSize) {}
     // ----- Member functions
-
 };

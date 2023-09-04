@@ -2,6 +2,10 @@
 
 #include "misc/status_enum.h"
 
+struct IntStatus;
+typedef IntStatus IntStatus_t;
+
+// Useless?
 class CoreIntCtrlBridge {
     // ----- Fields
     std::vector<IntCtrl_I*>       intCtrlArr;
