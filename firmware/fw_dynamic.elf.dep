@@ -1,0 +1,4 @@
+/home/luzeyu/touchfish/opensbi/build/platform/generic/firmware/fw_dynamic.elf.ld: \
+ /home/luzeyu/touchfish/opensbi/firmware/fw_dynamic.elf.ldS \
+ /home/luzeyu/touchfish/opensbi/build/platform/generic/kconfig/autoconf.h \
+ /home/luzeyu/touchfish/opensbi/firmware/fw_base.ldS

@@ -1,0 +1,3 @@
+/home/luzeyu/touchfish/opensbi/build/platform/generic/firmware/payloads/test_main.o: /home/luzeyu/touchfish/opensbi/firmware/payloads/test_main.c \
+ /home/luzeyu/touchfish/opensbi/build/platform/generic/kconfig/autoconf.h \
+ /home/luzeyu/touchfish/opensbi/include/sbi/sbi_ecall_interface.h

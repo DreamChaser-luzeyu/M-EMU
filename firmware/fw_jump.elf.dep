@@ -1,0 +1,3 @@
+/home/luzeyu/touchfish/opensbi/build/platform/generic/firmware/fw_jump.elf.ld: /home/luzeyu/touchfish/opensbi/firmware/fw_jump.elf.ldS \
+ /home/luzeyu/touchfish/opensbi/build/platform/generic/kconfig/autoconf.h \
+ /home/luzeyu/touchfish/opensbi/firmware/fw_base.ldS

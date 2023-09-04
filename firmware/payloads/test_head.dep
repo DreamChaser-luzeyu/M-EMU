@@ -1,0 +1,4 @@
+/home/luzeyu/touchfish/opensbi/build/platform/generic/firmware/payloads/test_head.o: /home/luzeyu/touchfish/opensbi/firmware/payloads/test_head.S \
+ /home/luzeyu/touchfish/opensbi/build/platform/generic/kconfig/autoconf.h \
+ /home/luzeyu/touchfish/opensbi/include/sbi/riscv_encoding.h \
+ /home/luzeyu/touchfish/opensbi/include/sbi/sbi_const.h

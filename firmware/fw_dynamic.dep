@@ -1,0 +1,11 @@
+/home/luzeyu/touchfish/opensbi/build/platform/generic/firmware/fw_dynamic.o: /home/luzeyu/touchfish/opensbi/firmware/fw_dynamic.S \
+ /home/luzeyu/touchfish/opensbi/build/platform/generic/kconfig/autoconf.h \
+ /home/luzeyu/touchfish/opensbi/include/sbi/fw_dynamic.h \
+ /home/luzeyu/touchfish/opensbi/include/sbi/riscv_asm.h \
+ /home/luzeyu/touchfish/opensbi/include/sbi/riscv_encoding.h \
+ /home/luzeyu/touchfish/opensbi/include/sbi/sbi_const.h \
+ /home/luzeyu/touchfish/opensbi/firmware/fw_base.S \
+ /home/luzeyu/touchfish/opensbi/include/sbi/riscv_elf.h \
+ /home/luzeyu/touchfish/opensbi/include/sbi/sbi_platform.h \
+ /home/luzeyu/touchfish/opensbi/include/sbi/sbi_scratch.h \
+ /home/luzeyu/touchfish/opensbi/include/sbi/sbi_trap.h
