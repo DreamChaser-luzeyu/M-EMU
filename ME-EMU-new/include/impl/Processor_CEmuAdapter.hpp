@@ -15,10 +15,10 @@ class CEmuCoreAdapter : public ProcessorCore_I {
 private:
     RVCore* cemuCore;
 
-    bool meip;
-    bool msip;
-    bool mtip;
-    bool seip;
+//    bool meip;
+//    bool msip;
+//    bool mtip;
+//    bool seip;
 
     rv_systembus busAdapter;
     // ----- Interface implementation
@@ -28,7 +28,7 @@ public:
     }
 
     FuncReturnFeedback_t Step_CoreAPI() override {
-        cemuCore->step(meip, msip, mtip, seip);
+        cemuCore->step(intStatus->meip, intStatus->msip, intStatus->mtip, intStatus->seip);
         return MEMU_OK;
     }
 

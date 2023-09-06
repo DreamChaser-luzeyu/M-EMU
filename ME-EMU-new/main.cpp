@@ -48,7 +48,7 @@ int main() {
     MMIODev_I* sys_ram = new MEmu_MMIO_Mem(1024 * 1024 * 4096l);
     sysBus.RegisterMMIODev_MMIOBus_API(sys_ram, 0x80000000);
     // --- Load binary file to memory
-    const char* init_file = "/home/luzeyu/touchfish/opensbi/build/platform/generic/firmware/fw_jump.bin";
+    const char* init_file = "/home/luzeyu/touchfish/opensbi/build/platform/generic/firmware/fw_payload.bin";
     std::ifstream file(init_file,std::ios::in | std::ios::binary);
     uint64_t file_size = std::filesystem::file_size(init_file);
     uint8_t* bin_data = new uint8_t[file_size];
@@ -113,7 +113,11 @@ int main() {
 //        rv_1.step(platform_level_int_ctrl->get_int(2), core_local_int_ctrl->m_s_irq(1),
 //                  core_local_int_ctrl->m_t_irq(1), platform_level_int_ctrl->get_int(3));
         // --- Core do exec
+//        rv_cli->UpdateIntState_IntCtrl_API();
+//        rv_plic->UpdateIntState_IntCtrl_API();
         core_0->Step_CoreAPI();
+//        rv_cli->UpdateIntState_IntCtrl_API();
+//        rv_plic->UpdateIntState_IntCtrl_API();
         core_1->Step_CoreAPI();
 
         while (uart->exist_tx()) {

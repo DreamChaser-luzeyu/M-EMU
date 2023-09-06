@@ -41,7 +41,7 @@ void test_run()
 
 //    int argc;
 //    const char* argv[10];
-    const char* load_path = "/home/luzeyu/touchfish/ysys-verilator-study/ME-EMU/fw_payload.bin";
+    const char* load_path = "/home/luzeyu/touchfish/opensbi/build/platform/generic/firmware/fw_payload.bin";
 //    if (argc >= 2) load_path = argv[1];
 //    for (int i = 1; i < argc; i++)
 //        if (strcmp(argv[i], "-rvtest") == 0) riscv_test = true;
@@ -70,10 +70,25 @@ void test_run()
     rv_1.jump(0x80000000);
     rv_1.set_GPR(10, 1);
     while (1) {
+
+
+
+        bool b1, b2, b3, b4, b5, b6, b7, b8;
         clint.tick();
+        b2 = clint.m_s_irq(0);
+        b3 = clint.m_t_irq(0);
+        b6 = clint.m_s_irq(1);
+        b7 = clint.m_t_irq(1);
         plic.update_ext(1, uart.irq());
-        rv_0.step(plic.get_int(0), clint.m_s_irq(0), clint.m_t_irq(0), plic.get_int(1));
+        b1 = plic.get_int(0);
+        b4 = plic.get_int(1);
+        b5 = plic.get_int(2);
+        b8 = plic.get_int(3);
+
+//        rv_0.step(plic.get_int(0), clint.m_s_irq(0), clint.m_t_irq(0), plic.get_int(1));
 //        rv_1.step(plic.get_int(2), clint.m_s_irq(1), clint.m_t_irq(1), plic.get_int(3));
+        rv_0.step(b1, b2, b3, b4);
+        rv_1.step(b5, b6, b7, b8);
         while (uart.exist_tx()) {
             char c = uart.getc();
             if (c != '\r') { std::cout << c; }
