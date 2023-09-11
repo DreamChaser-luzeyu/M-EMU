@@ -54,6 +54,8 @@ public:
 
     virtual FuncReturnFeedback_t WriteProgramCounter_CoreAPI(RegItemVal_t reg_val) = 0;
 
+    virtual FuncReturnFeedback_t setRegByIndex_CoreAPI(uint8_t gpr_index, int64_t val) = 0;
+
     // ----- Member functions
 public:
     IntStatus_t* getIntStatusRef() { return this->intStatus; }

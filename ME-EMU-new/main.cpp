@@ -45,7 +45,7 @@ int main() {
     MMIODev_I* sys_ram = new MEmu_MMIO_Mem(1024 * 1024 * 4096l);
     sysBus.RegisterMMIODev_MMIOBus_API(sys_ram, 0x80000000);
     // --- Load binary file to memory
-    const char* init_file = "/home/luzeyu/touchfish/opensbi/build/platform/generic/firmware/fw_payload.bin";
+    const char* init_file = "/home/luzeyu/touchfish/ysys-verilator-study/ME-EMU/firmware/fw_payload.bin";
     std::ifstream file(init_file,std::ios::in | std::ios::binary);
     uint64_t file_size = std::filesystem::file_size(init_file);
     uint8_t* bin_data = new uint8_t[file_size];
@@ -71,9 +71,10 @@ int main() {
     begin_addr.u64_val = 0x80000000;
     core_0->WriteProgramCounter_CoreAPI(begin_addr);
     core_1->WriteProgramCounter_CoreAPI(begin_addr);
-    ((CEmuCoreAdapter*)core_1)->setGPR(10, 1);
+    ((CEmuCoreAdapter *) core_1)->setRegByIndex_CoreAPI(10, 1);
 
     // --- Connect core with intc
+    // We cannot move clint into core because we need to attach it to the system bus
     ((CemuPlicAdapter*)rv_plic)->setCore0IntStatusPtr(core_0->getIntStatusRef());
     ((CemuPlicAdapter*)rv_plic)->setCore1IntStatusPtr(core_1->getIntStatusRef());
     ((CemuClintAdapter*)rv_cli)->setCore0IntStatusPtr(core_0->getIntStatusRef());

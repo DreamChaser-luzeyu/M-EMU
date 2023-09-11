@@ -6,7 +6,7 @@
 #include <bitset>
 #include <assert.h>
 
-#include "rv_common.hpp"
+#include "rv_common.h"
 #include "rv_systembus.hpp"
 #include "RVTLB_SV39.hpp"
 
@@ -309,7 +309,7 @@ public:
             case csr_satp: {
                 const csr_mstatus_def *mstatus = (csr_mstatus_def*)&status;
                 if (cur_priv == S_MODE && mstatus->tvm) return false;
-                satp_def *satp_reg = (satp_def*)&csr_data;
+                SATP_Reg_t *satp_reg = (SATP_Reg_t*)&csr_data;
                 if (satp_reg->mode !=0 && satp_reg->mode != 8) satp_reg->mode = 0;
                 satp = csr_data;
                 break;
@@ -359,18 +359,18 @@ public:
         // Address is not 4-byte aligned
         if (size == 4 && start_addr % 4 == 2) {
             rv_exc_code res0 = va_if(start_addr,2,buffer,bad_va);
-            if (res0 != exc_custom_ok) return res0;
+            if (res0 != EXEC_OK) return res0;
             rv_exc_code res1 = va_if(start_addr+2,2,buffer+2,bad_va);
-            if (res1 != exc_custom_ok) return res1;
-            return exc_custom_ok;
+            if (res1 != EXEC_OK) return res1;
+            return EXEC_OK;
         }
         else {
             bad_va = start_addr;
-            const satp_def *satp_reg = (satp_def *)&satp;
+            const SATP_Reg_t *satp_reg = (SATP_Reg_t *)&satp;
             if ( cur_priv == M_MODE || satp_reg->mode == 0) {
                 bool pstatus = bus.pa_read(start_addr,size,buffer);
                 if (!pstatus) return exc_instr_acc_fault;
-                else return exc_custom_ok;
+                else return EXEC_OK;
             }
             else {
                 // Note: If the pc misalign but didn't beyond page range, the exception should be raise by core.
@@ -381,18 +381,18 @@ public:
                 uint64_t pa = tlb_e->ppa + (start_addr % ( (tlb_e->pagesize==1)?(1<<12):((tlb_e->pagesize==2)?(1<<21):(1<<30))));
                 bool pstatus = bus.pa_read(pa,size,buffer);
                 if (!pstatus) return exc_instr_acc_fault;
-                else return exc_custom_ok;
+                else return EXEC_OK;
             }
         }
     }
 
     rv_exc_code va_read(uint64_t start_addr, uint64_t size, uint8_t *buffer) {
-        const satp_def *satp_reg = (satp_def *)&satp;
+        const SATP_Reg_t *satp_reg = (SATP_Reg_t *)&satp;
         const csr_mstatus_def *mstatus = (csr_mstatus_def*)&status;
         if ( (cur_priv == M_MODE && (!mstatus->mprv || mstatus->mpp == M_MODE)) || satp_reg->mode == 0) {
             bool pstatus = bus.pa_read(start_addr,size,buffer);
             if (!pstatus) return exc_load_acc_fault;
-            else return exc_custom_ok;
+            else return EXEC_OK;
         }
         else {
             if ((start_addr >> 12) != ((start_addr + size - 1) >> 12)) return exc_load_misalign;
@@ -404,12 +404,12 @@ public:
             uint64_t pa = tlb_e->ppa + (start_addr % ( (tlb_e->pagesize==1)?(1<<12):((tlb_e->pagesize==2)?(1<<21):(1<<30))));
             bool pstatus = bus.pa_read(pa,size,buffer);
             if (!pstatus) return exc_load_acc_fault;
-            else return exc_custom_ok;
+            else return EXEC_OK;
         }
     }
 
     rv_exc_code va_write(uint64_t start_addr, uint64_t size, const uint8_t *buffer) {
-        const satp_def *satp_reg = (satp_def *)&satp;
+        const SATP_Reg_t *satp_reg = (SATP_Reg_t *)&satp;
         const csr_mstatus_def *mstatus = (csr_mstatus_def*)&status;
         if ( (cur_priv == M_MODE && (!mstatus->mprv || mstatus->mpp == M_MODE)) || satp_reg->mode == 0) {
             if (riscv_test) {
@@ -429,7 +429,7 @@ public:
             }
             bool pstatus = bus.pa_write(start_addr,size,buffer);
             if (!pstatus) return exc_store_acc_fault;
-            else return exc_custom_ok;
+            else return EXEC_OK;
         }
         else {
             if ((start_addr >> 12) != ((start_addr + size - 1) >> 12)) return exc_store_misalign;
@@ -456,18 +456,18 @@ public:
             }
             bool pstatus = bus.pa_write(pa,size,buffer);
             if (!pstatus) return exc_store_pgfault;
-            else return exc_custom_ok;
+            else return EXEC_OK;
         }
     }
     // note: core should check whether amoop and start_addr is valid
     rv_exc_code va_lr(uint64_t start_addr, uint64_t size, uint8_t *buffer) {
         assert(size == 4 || size == 8);
-        const satp_def *satp_reg = (satp_def *)&satp;
+        const SATP_Reg_t *satp_reg = (SATP_Reg_t *)&satp;
         const csr_mstatus_def *mstatus = (csr_mstatus_def*)&status;
         if ( (cur_priv == M_MODE && (!mstatus->mprv || mstatus->mpp == M_MODE)) || satp_reg->mode == 0) {
             bool pstatus = bus.pa_lr(start_addr,size,buffer,hart_id);
             if (!pstatus) return exc_store_acc_fault;
-            else return exc_custom_ok;
+            else return EXEC_OK;
         }
         else {
             if ((start_addr >> 12) != ((start_addr + size - 1) >> 12)) return exc_store_misalign;
@@ -479,18 +479,18 @@ public:
             uint64_t pa = tlb_e->ppa + (start_addr % ( (tlb_e->pagesize==1)?(1<<12):((tlb_e->pagesize==2)?(1<<21):(1<<30))));
             bool pstatus = bus.pa_lr(pa,size,buffer,hart_id);
             if (!pstatus) return exc_store_acc_fault;
-            else return exc_custom_ok;
+            else return EXEC_OK;
         }
     }
     // Note: if va_sc return != exc_custom_ok, sc_fail shouldn't commit.
     rv_exc_code va_sc(uint64_t start_addr, uint64_t size, const uint8_t *buffer, bool &sc_fail) {
         assert(size == 4 || size == 8);
-        const satp_def *satp_reg = (satp_def *)&satp;
+        const SATP_Reg_t *satp_reg = (SATP_Reg_t *)&satp;
         const csr_mstatus_def *mstatus = (csr_mstatus_def*)&status;
         if ( (cur_priv == M_MODE && (!mstatus->mprv || mstatus->mpp == M_MODE)) || satp_reg->mode == 0) {
             bool pstatus = bus.pa_sc(start_addr,size,buffer,hart_id,sc_fail);
             if (!pstatus) return exc_store_acc_fault;
-            else return exc_custom_ok;
+            else return EXEC_OK;
         }
         else {
             if ((start_addr >> 12) != ((start_addr + size - 1) >> 12)) return exc_store_misalign;
@@ -502,17 +502,17 @@ public:
             uint64_t pa = tlb_e->ppa + (start_addr % ( (tlb_e->pagesize==1)?(1<<12):((tlb_e->pagesize==2)?(1<<21):(1<<30))));
             bool pstatus = bus.pa_sc(pa,size,buffer,hart_id,sc_fail);
             if (!pstatus) return exc_store_pgfault;
-            else return exc_custom_ok;
+            else return EXEC_OK;
         }
     }
     rv_exc_code va_amo(uint64_t start_addr, uint64_t size, amo_funct op, int64_t src, int64_t &dst) {
         assert(size == 4 || size == 8);
-        const satp_def *satp_reg = (satp_def *)&satp;
+        const SATP_Reg_t *satp_reg = (SATP_Reg_t *)&satp;
         const csr_mstatus_def *mstatus = (csr_mstatus_def*)&status;
         if ( (cur_priv == M_MODE && (!mstatus->mprv || mstatus->mpp == M_MODE)) || satp_reg->mode == 0) {
             bool pstatus = bus.pa_amo_op(start_addr,size,op,src,dst);
             if (!pstatus) return exc_store_acc_fault;
-            else return exc_custom_ok;
+            else return EXEC_OK;
         }
         else {
             if ((start_addr >> 12) != ((start_addr + size - 1) >> 12)) return exc_store_misalign;
@@ -524,7 +524,7 @@ public:
             uint64_t pa = tlb_e->ppa + (start_addr % ( (tlb_e->pagesize==1)?(1<<12):((tlb_e->pagesize==2)?(1<<21):(1<<30))));
             bool pstatus = bus.pa_amo_op(pa,size,op,src,dst);
             if (!pstatus) return exc_store_pgfault;
-            else return exc_custom_ok;
+            else return EXEC_OK;
         }
     }
 
@@ -572,6 +572,7 @@ public:
         sv39.sfence_vma(vaddr,asid);
         return true;
     }
+
     void raise_trap(csr_cause_def cause, uint64_t tval = 0) {
         assert(!cur_need_trap);
         cur_need_trap = true;
@@ -612,6 +613,7 @@ public:
         }
         if (cause.cause == exc_instr_pgfault && tval == trap_pc) assert(false);
     }
+
     uint64_t get_cycle() {
         return mcycle;
     }
@@ -641,7 +643,7 @@ private:
         else if (int_mask & (1ull<<int_s_timer)) {
             return int_s_timer;
         }
-        else return exc_custom_ok;
+        else return int_no_int;
     }
     void check_and_raise_int() { // TODO: Find interrupts trap priority compare to exceptions. Now interrupts are prior to exceptions.
         /*
@@ -663,7 +665,7 @@ private:
         // Note: WFI is not affacted by mstatus.mie and mstatus.sie and mideleg, but we implement WFI as nop currently.
         csr_mstatus_def *mstatus = (csr_mstatus_def*)&status;
         uint64_t int_bits = ip & ie;
-        uint64_t final_int_index = exc_custom_ok;
+        uint64_t final_int_index = EXEC_OK;
         if (cur_priv == M_MODE) {
             // Note: We should use mideleg as interrupt disable in M-Mode as interrupts didn't transfer to lower levels.
            uint64_t mmode_int_bits = int_bits & (~mideleg);
@@ -672,7 +674,7 @@ private:
         else {
             // check traps to smode or mmode
             uint64_t int_index = int2index(int_bits);
-            if ((1ul<<int_index) & mideleg) { // delegate to s
+            /*if ((1ul<<int_index) & mideleg)*/if (int_bits & mideleg) { // delegate to s
                 // Note: If delegate to S but sie is 0, we should not raise trap to M-Mode.
                 if (mstatus->sie || cur_priv < S_MODE) final_int_index = int_index;
             }
@@ -680,7 +682,7 @@ private:
                 if (mstatus->mie || cur_priv < M_MODE) final_int_index = int_index;
             }
         }
-        if(final_int_index != exc_custom_ok) raise_trap(csr_cause_def(final_int_index,1));
+        if(final_int_index != EXEC_OK) raise_trap(csr_cause_def(final_int_index, 1));
     }
     // status
     const uint64_t &cur_pc;

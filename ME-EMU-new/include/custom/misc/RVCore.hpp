@@ -3,7 +3,7 @@
 
 #include <bitset>
 #include <queue>
-#include "rv_common.hpp"
+#include "rv_common.h"
 #include <assert.h>
 #include "rv_systembus.hpp"
 #include "RVPrivilege.hpp"
@@ -83,7 +83,7 @@ private:
             goto exception;
         }
         if_exc = priv.va_if(pc,4,(uint8_t*)&cur_instr,pc_bad_va);
-        if (if_exc != exc_custom_ok) {
+        if (if_exc != EXEC_OK) {
             priv.raise_trap(csr_cause_def(if_exc),pc_bad_va);
             goto exception;
         }
@@ -473,13 +473,13 @@ private:
                             if (inst->r_type.funct3 == 0b011) {
                                 int64_t result;
                                 rv_exc_code exc = priv.va_lr(GPR[inst->r_type.rs1],(1<<inst->r_type.funct3),(uint8_t*)&result);
-                                if (exc == exc_custom_ok) set_GPR(inst->r_type.rd,result);
+                                if (exc == EXEC_OK) set_GPR(inst->r_type.rd, result);
                                 else priv.raise_trap(csr_cause_def(exc),GPR[inst->r_type.rs1]);
                             }
                             else {
                                 int32_t result;
                                 rv_exc_code exc = priv.va_lr(GPR[inst->r_type.rs1],(1<<inst->r_type.funct3),(uint8_t*)&result);
-                                if (exc == exc_custom_ok) set_GPR(inst->r_type.rd,result);
+                                if (exc == EXEC_OK) set_GPR(inst->r_type.rd, result);
                                 else priv.raise_trap(csr_cause_def(exc),GPR[inst->r_type.rs1]);
                             }
                         }
@@ -488,14 +488,14 @@ private:
                     case AMOSC: {
                         bool result;
                         rv_exc_code exc = priv.va_sc(GPR[inst->r_type.rs1],(1<<inst->r_type.funct3),(uint8_t*)&GPR[inst->r_type.rs2],result);
-                        if (exc == exc_custom_ok) set_GPR(inst->r_type.rd,result);
+                        if (exc == EXEC_OK) set_GPR(inst->r_type.rd, result);
                         else priv.raise_trap(csr_cause_def(exc),GPR[inst->r_type.rs1]);
                         break;
                     }
                     case AMOSWAP: case AMOADD: case AMOXOR: case AMOAND: case AMOOR: case AMOMIN: case AMOMAX: case AMOMINU: case AMOMAXU: {
                         int64_t result;
                         rv_exc_code exc = priv.va_amo(GPR[inst->r_type.rs1],(1<<inst->r_type.funct3),static_cast<amo_funct>(funct5),GPR[inst->r_type.rs2],result);
-                        if (exc == exc_custom_ok) set_GPR(inst->r_type.rd,result);
+                        if (exc == EXEC_OK) set_GPR(inst->r_type.rd, result);
                         else priv.raise_trap(csr_cause_def(exc),GPR[inst->r_type.rs1]);
                         break;
                     }
@@ -907,7 +907,7 @@ private:
             return false;
         }
         rv_exc_code va_err = priv.va_read(start_addr,size,buffer);
-        if (va_err == exc_custom_ok) {
+        if (va_err == EXEC_OK) {
             return true;
 
         }
@@ -923,7 +923,7 @@ private:
             return false;
         }
         rv_exc_code va_err = priv.va_write(start_addr,size,buffer);
-        if (va_err == exc_custom_ok) {
+        if (va_err == EXEC_OK) {
             return true;
         }
         else {

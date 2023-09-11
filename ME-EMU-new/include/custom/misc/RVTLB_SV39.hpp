@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <utility>
-#include "rv_common.hpp"
+#include "rv_common.h"
 #include "rv_systembus.hpp"
 
 struct sv39_tlb_entry {
@@ -37,6 +37,8 @@ public:
         random = 0;
         for (int i=0;i<nr_tlb_entry;i++) tlb[i].pagesize = 0;
     }
+
+
     void sfence_vma(uint64_t vaddr, uint64_t asid) {
         for (int i=0;i<nr_tlb_entry;i++) {
             if (tlb[i].asid == asid || asid == 0) {
@@ -58,8 +60,10 @@ public:
             }
         }
     }
-    sv39_tlb_entry* local_tlbe_get(satp_def satp, uint64_t va) {
-        sv39_va *va_struct = (sv39_va*)&va;
+
+
+    sv39_tlb_entry* local_tlbe_get(SATP_Reg_t satp, uint64_t va) {
+        SV39_VAddr_t *va_struct = (SV39_VAddr_t*)&va;
         assert((va_struct->blank == 0b1111111111111111111111111 && (va_struct->vpn_2 >> 8)) || (va_struct->blank == 0 && ((va_struct->vpn_2 >> 8) == 0)));
         // we should raise access fault before call sv39
         sv39_tlb_entry *res = local_tlb_get(satp,va);
@@ -86,7 +90,7 @@ public:
             return res;
         }
         // slow path, ptw
-        sv39_pte pte;
+        SV39_PageTableEntry_t pte;
         uint64_t page_size;
         bool ptw_result = ptw(satp,va,pte,page_size);
         if (!ptw_result) return NULL; // return null when page fault.
@@ -107,17 +111,21 @@ public:
         if (local_tlb_get(satp,va) != res) assert(false);
         return res;
     }
+
+
 private:
     rv_systembus &bus;
     unsigned int random;
     sv39_tlb_entry tlb[nr_tlb_entry];
-    bool ptw(satp_def satp, uint64_t va_in, sv39_pte &pte_out, uint64_t &pagesize) {
-        sv39_va *va = (sv39_va*)&va_in;
+
+
+    bool ptw(SATP_Reg_t satp, uint64_t va_in, SV39_PageTableEntry_t &pte_out, uint64_t &pagesize) {
+        SV39_VAddr_t *va = (SV39_VAddr_t*)&va_in;
         if (satp.mode != 8) return false; // mode is not sv39
         uint64_t pt_addr = ((satp.ppn) << 12);
-        sv39_pte pte;
+        SV39_PageTableEntry_t pte;
         for (int i=2;i>=0;i--) {
-            bool res = bus.pa_read(pt_addr+((i==2?va->vpn_2:(i==1?va->vpn_1:va->vpn_0))*sizeof(sv39_pte)),sizeof(sv39_pte),(uint8_t*)&pte);
+            bool res = bus.pa_read(pt_addr+((i==2?va->vpn_2:(i==1?va->vpn_1:va->vpn_0))*sizeof(SV39_PageTableEntry_t)), sizeof(SV39_PageTableEntry_t), (uint8_t*)&pte);
             if (!res) {
                 //printf("pt_addr=%lx, vpn=%lx\n",pt_addr,((i==2?va->vpn_2:(i==1?va->vpn_1:va->vpn_0))));
                 //printf("\nerror ptw pa=%lx, level=%d, satp=%lx\n",pt_addr+((i==2?va->vpn_2:(i==1?va->vpn_1:va->vpn_0))*sizeof(sv39_pte)),i,satp);
@@ -151,7 +159,9 @@ private:
         }
         return false;
     }
-    sv39_tlb_entry* local_tlb_get(satp_def satp, uint64_t va) {
+
+
+    sv39_tlb_entry* local_tlb_get(SATP_Reg_t satp, uint64_t va) {
         sv39_tlb_entry* res = NULL;
         for (int i=0;i<nr_tlb_entry;i++) {
             if (tlb[i].asid == satp.asid || tlb[i].G) {

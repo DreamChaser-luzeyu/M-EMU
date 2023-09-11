@@ -21,9 +21,7 @@ public:
         findDevAccordingToAddr(begin_addr, &dev);
 
         assert(dev);
-//        if(dev->getAddressingMode() == MMIO_DEV_ADDRESS_TYPE_RELATIVE) {
-            dev->ReadBuffer_MMIODev_API(begin_addr - dev->getDevBaseAddr(), size, buffer);
-//        }
+        dev->ReadBuffer_MMIODev_API(begin_addr - dev->getDevBaseAddr(), size, buffer);
 
         return MEMU_OK;
     }
@@ -35,9 +33,7 @@ public:
         findDevAccordingToAddr(begin_addr, &dev);
 
         assert(dev);
-//        if(dev->getAddressingMode() == MMIO_DEV_ADDRESS_TYPE_RELATIVE) {
-            dev->WriteBuffer_MMIODev_API(begin_addr - dev->getDevBaseAddr(), size, buffer);
-//        }
+        dev->WriteBuffer_MMIODev_API(begin_addr - dev->getDevBaseAddr(), size, buffer);
 
         return MEMU_OK;
     }
@@ -61,7 +57,7 @@ public:
     MEmu_MMIOBus() : MMIOBus_I() {}
 
     // ----- Member functions
-public:
+private:
     FuncReturnFeedback_t findDevAccordingToAddr(uint64_t addr, MMIODevHandle_t* dev_ret) {
         // TODO: Replace with binary search for better performance
         for(auto d : this->mmioDevs) {

@@ -3,7 +3,7 @@
 
 #include "interface/MMIO_Bus.h"
 
-#include "rv_common.hpp"
+#include "rv_common.h"
 #include <cstdint>
 #include <assert.h>
 #include <algorithm>

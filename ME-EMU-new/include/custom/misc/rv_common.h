@@ -1,5 +1,4 @@
-#ifndef RV_COMMON
-#define RV_COMMON
+#pragma once
 
 #include <cstdint>
 
@@ -361,7 +360,8 @@ enum rv_int_code {
     int_s_timer = 5,
     int_m_timer = 7,
     int_s_ext   = 9,
-    int_m_ext   = 11
+    int_m_ext   = 11,
+    int_no_int  = 24
 };
 
 // supervisor interrupt mask
@@ -370,66 +370,66 @@ const uint64_t s_int_mask = (1ull<<int_s_ext) | (1ull<<int_s_sw) | (1ull<<int_s_
 const uint64_t m_int_mask = s_int_mask | (1ull<<int_m_ext) | (1ull<<int_m_sw) | (1ull<<int_m_timer);
 
 enum rv_exc_code {
-    exc_instr_misalign  = 0,
-    exc_instr_acc_fault = 1,
-    exc_illegal_instr   = 2,
-    exc_breakpoint      = 3,
-    exc_load_misalign   = 4,
-    exc_load_acc_fault  = 5,
-    exc_store_misalign  = 6,// including amo
-    exc_store_acc_fault = 7,// including amo
-    exc_ecall_from_user = 8,
+    exc_instr_misalign          = 0,
+    exc_instr_acc_fault         = 1,
+    exc_illegal_instr           = 2,
+    exc_breakpoint              = 3,
+    exc_load_misalign           = 4,
+    exc_load_acc_fault          = 5,
+    exc_store_misalign          = 6,    // including amo
+    exc_store_acc_fault         = 7,    // including amo
+    exc_ecall_from_user         = 8,
     exc_ecall_from_supervisor   = 9,
     exc_ecall_from_machine      = 11,
-    exc_instr_pgfault   = 12,
-    exc_load_pgfault    = 13,
-    exc_store_pgfault   = 15,// including amo
-    exc_custom_ok       = 24
+    exc_instr_pgfault           = 12,
+    exc_load_pgfault            = 13,
+    exc_store_pgfault           = 15,   // including amo
+    EXEC_OK               = 24
 };
 
 const uint64_t s_exc_mask = (1<<16) - 1 - (1<<exc_ecall_from_machine);
 
 struct csr_counteren_def {
-    uint64_t cycle  : 1;
-    uint64_t time   : 1;
+    uint64_t cycle          : 1;
+    uint64_t time           : 1;
     uint64_t instr_retire   : 1;
-    uint64_t blank  : 61;
+    uint64_t blank          : 61;
 };
 
 const uint64_t counter_mask = (1<<0) | (1<<2);
 
-struct sv39_pte {
-    uint64_t V : 1; // valid
-    uint64_t R : 1; // read
-    uint64_t W : 1; // write
-    uint64_t X : 1; // execute
-    uint64_t U : 1; // user
-    uint64_t G : 1; // global
-    uint64_t A : 1; // access
-    uint64_t D : 1; // dirty
-    uint64_t RSW : 2; // reserved for use by supervisor softwar
-    uint64_t PPN0 : 9;
-    uint64_t PPN1 : 9;
-    uint64_t PPN2 : 26;
-    uint64_t reserved : 7;
-    uint64_t PBMT : 2; // Svpbmt is not implemented, return 0
-    uint64_t N : 1;
-};
-static_assert(sizeof(sv39_pte) == 8, "sv39_pte shoule be 8 bytes.");
+// Page Table Entry
+typedef struct {
+    uint64_t V          : 1;    // valid
+    uint64_t R          : 1;    // read
+    uint64_t W          : 1;    // write
+    uint64_t X          : 1;    // execute
+    uint64_t U          : 1;    // user
+    uint64_t G          : 1;    // global
+    uint64_t A          : 1;    // access
+    uint64_t D          : 1;    // dirty
+    uint64_t RSW        : 2;    // reserved for use by supervisor program
+    uint64_t PPN0       : 9;
+    uint64_t PPN1       : 9;
+    uint64_t PPN2       : 26;
+    uint64_t reserved   : 7;
+    uint64_t PBMT       : 2;    // Svpbmt is not implemented, return 0
+    uint64_t N          : 1;
+} SV39_PageTableEntry_t;
+static_assert(sizeof(SV39_PageTableEntry_t) == 8, "SV39_PageTableEntry_t shoule be 8 bytes.");
 // Note: A and D not implement. So use them as permission bit and raise page fault.
 
-struct satp_def {
+// Supervisor Address Translation and Protection (satp) Register
+typedef struct {
     uint64_t ppn    : 44;
     uint64_t asid   : 16;
     uint64_t mode   : 4;
-};
+} SATP_Reg_t;
 
-struct sv39_va {
+typedef struct {
     uint64_t page_off   : 12;
     uint64_t vpn_0      : 9;
     uint64_t vpn_1      : 9;
     uint64_t vpn_2      : 9;
     uint64_t blank      : 25;
-};
-
-#endif
+} SV39_VAddr_t;

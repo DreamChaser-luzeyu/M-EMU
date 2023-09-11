@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <cstring>
+#include <cassert>
 #include "interface/MMIO_Dev.h"
 #include "misc/status_enum.h"
 

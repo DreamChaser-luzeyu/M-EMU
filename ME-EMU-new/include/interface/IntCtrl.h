@@ -2,7 +2,7 @@
 
 #include <vector>
 #include "misc/status_enum.h"
-#include "interface/Processor.h"
+#include "interface/Core.h"
 
 struct IntStatus;
 typedef IntStatus IntStatus_t;

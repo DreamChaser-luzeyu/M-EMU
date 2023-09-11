@@ -1,6 +1,6 @@
 #pragma once
 
-#include "interface/Processor.h"
+#include "interface/Core.h"
 
 struct IntStatus {
     bool meip;
@@ -14,12 +14,6 @@ class CEmuCoreAdapter : public ProcessorCore_I {
     // ----- Fields
 private:
     RVCore* cemuCore;
-
-//    bool meip;
-//    bool msip;
-//    bool mtip;
-//    bool seip;
-
     rv_systembus busAdapter;
     // ----- Interface implementation
 public:
@@ -42,6 +36,11 @@ public:
         return MEMU_OK;
     }
 
+    FuncReturnFeedback_t setRegByIndex_CoreAPI(uint8_t gpr_index, int64_t val) {
+        cemuCore->set_GPR(gpr_index, val);
+        return MEMU_OK;
+    }
+
     // ----- Constructor & Destructor
     CEmuCoreAdapter(MMIOBus_I* memu_bus, uint16_t hart_id) : busAdapter(memu_bus) {
         this->intStatus = new IntStatus_t;
@@ -53,9 +52,6 @@ public:
     }
     // ----- Member functions
 
-    FuncReturnFeedback_t setGPR(uint8_t gpr_index, int64_t val) {
-        cemuCore->set_GPR(gpr_index, val);
-        return MEMU_OK;
-    }
+
 
 };
