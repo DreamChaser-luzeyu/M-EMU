@@ -18,16 +18,31 @@ private:
     MMIOBus_I* sysBus;
     uint16_t hartID;
 
-    // --- CSRs
+    // ----- CSRs
+    // --- M_MODE CSRs
     uint64_t                csrMCycleNum;
-    CSReg_IntPending_t      csrMIntPending;      // Read-only for user
-    uint64_t                csrMIntEnable;       // TODO: mask?
-    uint64_t                csrMIntDelegation;   // Machine-level Interrupt Delegation Register
-    CSReg_MachineStatus_t   csrMachineStatus;
+    CSReg_IntPending_t      csrMIntPending;            // mip, Read-only for user
+    uint64_t                csrMIntEnable;             // mie, TODO: mask?
+    // Used as a mask, indicating which traps to be routed to S_MODE
+    uint64_t                csrMIntDelegation;         // mideleg, Machine-level Interrupt Delegation Register
+    uint64_t                csrMExceptionDelegation;   // medeleg, Machine-level Exception Delegation Register
+    uint64_t                csrMachineTrapVal;         // mtval,   Machine Trap Value Register
+    CSReg_MStatus_t         csrMachineStatus;
+    CSReg_Cause_t           csrMachineCause;
+    uint64_t                csrMExceptionPC;           // mepc
+    CSReg_TrapVector_t      csrMTrapVecBaseAddr;       // mtvec
+    // --- S_MODE CSRs
+    CSReg_SStatus_t         csrSupervisorStatus;
+    uint64_t                csrSupervisorTrapVal;      // stval
+    CSReg_Cause_t           csrSupervisorCause;        // scause
+    uint64_t                csrSExceptionPC;           // sepc
+    CSReg_TrapVector_t      csrSTrapVecBaseAddr;       // stvec
     // --- Inner states
     bool needTrap;
+    uint64_t trapProgramCounter;
     PrivMode_t currentPrivMode;
     PrivMode_t nextPrivMode;
+    uint64_t currentProgramCounter;
 
     // ----- Interface implementations
 public:
@@ -50,7 +65,8 @@ public:
 
     // ----- Member functions
 private:
-    IntType_e preExec();
+    void preExec();
+    void raiseTrap(CSReg_Cause_t cause, uint64_t tval = 0);
 };
 
 

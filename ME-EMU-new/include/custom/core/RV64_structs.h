@@ -49,7 +49,48 @@ typedef union {
         uint64_t sd     :1;     // no vs,fs,xs, zero
     };
     uint64_t val;
-} CSReg_MachineStatus_t;
+} CSReg_MStatus_t;
+
+
+typedef union {
+    struct {
+        uint64_t blank0 :1;
+        uint64_t sie    :1;     // supervisor interrupt enable
+        uint64_t blank1 :3;
+        uint64_t spie   :1;     // sie prior to trapping
+        uint64_t ube    :1;     // u big-endian, zero
+        uint64_t blank2 :1;     // mie prior to trapping
+        uint64_t spp    :1;     // supervisor previous privilege mode.
+        uint64_t vs     :2;     // without vector, zero
+        uint64_t blank3 :2;     // machine previous privilege mode.
+        uint64_t fs     :2;     // without float, zero
+        uint64_t xs     :2;     // without user ext, zero
+        uint64_t blank4 :1;
+        uint64_t sum    :1;     // permit Supervisor User Memory access
+        uint64_t mxr    :1;     // Make eXecutable Readable
+        uint64_t blank5 :12;
+        uint64_t uxl    :2;     // user xlen
+        uint64_t blank6 :29;
+        uint64_t sd     :1;     // no vs,fs,xs, zero
+    };
+    uint64_t val;
+} CSReg_SStatus_t;
+
+typedef union {
+    struct {
+        uint64_t mode   : 2; // 0: Direct, 1: Vectored
+        uint64_t base   : 62;
+    };
+    uint64_t val;
+} CSReg_TrapVector_t;
+
+typedef union {
+    struct {
+        uint64_t cause: 63;
+        uint64_t interrupt: 1;    // If the trap is caused by an interrupt
+    };
+    uint64_t val;
+} CSReg_Cause_t;
 
 typedef enum {
     U_MODE = 0,
