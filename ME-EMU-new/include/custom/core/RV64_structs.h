@@ -78,7 +78,7 @@ typedef union {
 
 typedef union {
     struct {
-        uint64_t mode   : 2; // 0: Direct, 1: Vectored
+        uint64_t mode   : 2;    // 0 - Direct    1 - Vectored   2 - Reserved
         uint64_t base   : 62;
     };
     uint64_t val;
@@ -146,6 +146,7 @@ typedef union {
         unsigned int imm_10_1  :10;
         int imm_20             :1;
     } j_type;
+    uint32_t val;
 } RVInst_t;
 
 typedef enum {
@@ -175,3 +176,21 @@ typedef enum  {
     int_m_ext   = 11,
     int_no_int  = 24
 } IntType_e;
+
+
+
+
+// Supervisor Address Translation and Protection (satp) Register
+typedef struct {
+    uint64_t ppn    : 44;
+    uint64_t asid   : 16;
+    uint64_t mode   : 4;
+} SATP_Reg_t;
+
+typedef struct {
+    uint64_t page_off   : 12;
+    uint64_t vpn_0      : 9;
+    uint64_t vpn_1      : 9;
+    uint64_t vpn_2      : 9;
+    uint64_t blank      : 25;
+} SV39_VAddr_t;

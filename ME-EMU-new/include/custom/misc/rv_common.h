@@ -371,7 +371,7 @@ const uint64_t m_int_mask = s_int_mask | (1ull<<int_m_ext) | (1ull<<int_m_sw) | 
 
 enum rv_exc_code {
     exc_instr_misalign          = 0,
-    exc_instr_acc_fault         = 1,
+    exc_instr_acc_fault         = 1,    // ???
     exc_illegal_instr           = 2,
     exc_breakpoint              = 3,
     exc_load_misalign           = 4,

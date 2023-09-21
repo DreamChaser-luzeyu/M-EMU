@@ -7,14 +7,34 @@ FuncReturnFeedback_t RV64Core::DumpRegister_CoreAPI(std::vector<RegisterItem_t> 
 }
 
 FuncReturnFeedback_t RV64Core::Step_CoreAPI() {
+    bool is_new_pc_set = false;
+    bool is_compressed_inst = false;
+    bool is_instr_illegal = false;
     // --- Instruction Fetch
     RVInst_t instruction;
 
     // --- Decode & exec
+    preExec();
+    if(needTrap) {}
 
 
 
-
+    currentProgramCounter = currentProgramCounter + (is_compressed_inst ? 2 : 4);
+exception:
+    if(is_instr_illegal) {
+        CSReg_Cause_t cause;
+        cause.cause = exc_illegal_instr;
+        raiseTrap(cause, instruction.val);
+    }
+    if(needTrap) { currentProgramCounter = trapProgramCounter; }
+post_exec:
+    if(!needTrap) { minstret++; }
+    // seems useless, to be removed
+//    assert(csrMachineStatus.blank0 == 0);
+//    assert(csrMachineStatus.blank1 == 0);
+//    assert(csrMachineStatus.blank2 == 0);
+//    assert(csrMachineStatus.blank3 == 0);
+//    assert(csrMachineStatus.blank4 == 0);
     return MEMU_OK;
 }
 

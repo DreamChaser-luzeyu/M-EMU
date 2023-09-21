@@ -349,7 +349,7 @@ public:
     // @note The core should raise exceptions when return value is not exc_custom_ok.
     /**
      * Instruction fetch
-     * @param start_addr
+     * @param start_addr virtual address
      * @param size
      * @param buffer
      * @param bad_va
@@ -373,7 +373,7 @@ public:
                 else return EXEC_OK;
             }
             else {
-                // Note: If the pc misalign but didn't beyond page range, the exception should be raise by core.
+                // Note: If the pc misalign but didn't beyond page range, the exception should be raised by core.
                 if ((start_addr >> 12) != ((start_addr + size - 1) >> 12)) return exc_instr_misalign;
                 sv39_tlb_entry *tlb_e = sv39.local_tlbe_get(*satp_reg,start_addr);
                 if (!tlb_e || !tlb_e->A || !tlb_e->X) return exc_instr_pgfault;

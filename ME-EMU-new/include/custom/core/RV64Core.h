@@ -37,12 +37,16 @@ private:
     CSReg_Cause_t           csrSupervisorCause;        // scause
     uint64_t                csrSExceptionPC;           // sepc
     CSReg_TrapVector_t      csrSTrapVecBaseAddr;       // stvec
+    // --- Shared CSRs
+    uint64_t                mcycle;
+    uint64_t                minstret;
     // --- Inner states
     bool needTrap;
     uint64_t trapProgramCounter;
     PrivMode_t currentPrivMode;
     PrivMode_t nextPrivMode;
     uint64_t currentProgramCounter;
+
 
     // ----- Interface implementations
 public:

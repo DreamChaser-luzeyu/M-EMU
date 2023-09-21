@@ -1,4 +1,5 @@
 #include "custom/core/RV64Core.h"
+#include "custom/core/RV64SV39_MMU.h"
 
 static inline IntType_e bits_to_int_type(uint64_t int_bits) {
     // According to spec, multiple simultaneous interrupts destined for M-mode are handled
@@ -37,18 +38,20 @@ void RV64Core::preExec() {
     this->needTrap = false;
     this->currentPrivMode = this->nextPrivMode;
     // ----- Check interrupt bits
-    uint64_t int_bits = (csrMIntPending.val) & csrMIntEnable;
+    const uint64_t int_bits = (csrMIntPending.val) & csrMIntEnable;
     if(bits_to_int_type(int_bits) == int_no_int) { return; }  // Certainly no need to trap, so return directly
     // ----- Raise trap
-    IntType_e exec_feedback = int_no_int;
     // 1-- For M_MODE
     if(currentPrivMode == M_MODE) {
-        uint64_t m_mode_int_bits = int_bits & (~csrMIntDelegation);
+        uint64_t m_mode_int_bits = int_bits & (~csrMIntDelegation);  // Interrupts that are not delegated to S_MODE
         if(csrMachineStatus.mie && m_mode_int_bits) {
             // M_MODE interrupt enabled && there exists M_MODE interrupt
             // then we want to raise a trap
-            exec_feedback = bits_to_int_type(m_mode_int_bits);
-
+            // No need to perform mode switching
+            CSReg_Cause_t cause;
+            cause.cause = bits_to_int_type(m_mode_int_bits);;
+            cause.interrupt = 1;
+            return raiseTrap(cause);
             // **ends here
         }
     }
@@ -62,16 +65,21 @@ void RV64Core::preExec() {
             if(currentPrivMode < S_MODE) {
                 // We are at lower privilege level than S_MODE
                 // A trap is needed to go to S_MODE <TO BE VERIFIED>
-                exec_feedback = int_type;
-
+                CSReg_Cause_t cause;
+                cause.cause = int_type;
+                cause.interrupt = 1;
+                return raiseTrap(cause);
                 // **ends here
             }
             else if(csrMachineStatus.sie) {
                 // We have S_MODE interrupt enabled, so we want to raise a trap
-                exec_feedback = int_type;
-
+                CSReg_Cause_t cause;
+                cause.cause = int_type;
+                cause.interrupt = 1;
+                return raiseTrap(cause);
                 // ??? What if we are not at S_MODE, but S_MODE interrupt is disabled? Should we raise a trap?
                 // I think we need a trap to switch to S_MODE anyway. <TO BE VERIFIED>
+                // We need two traps ???
                 // **ends here
             }
         }
@@ -80,17 +88,20 @@ void RV64Core::preExec() {
             // We should trap to M_MODE by default
             if(currentPrivMode < M_MODE) {
                 // Same as above, we need a trap to switch to M_MODE
-
-                exec_feedback = int_type;
-
+                CSReg_Cause_t cause;
+                cause.cause = int_type;
+                cause.interrupt = 1;
+                return raiseTrap(cause);
                 // ** ends here
             }
 
             else if(csrMachineStatus.mie) {
-                // If we have M_MODE interrupt enabled or we are at smaller privilege mode than M_MODE
+                // If we have M_MODE interrupt enabled
                 // then we use the int_bits directly
-                exec_feedback = int_type;
-
+                CSReg_Cause_t cause;
+                cause.cause = int_type;
+                cause.interrupt = 1;
+                return raiseTrap(cause);
                 // **ends here
             }
         }
@@ -106,15 +117,15 @@ void RV64Core::raiseTrap(CSReg_Cause_t cause, uint64_t tval)
 
     // --- Decide which mode to trap to
     if(currentPrivMode != M_MODE) {
-        if(csrMachineCause.interrupt) {
+        if(cause.interrupt) {
             // Trap caused by interrupt
-            if(csrMIntDelegation & (1 << csrMachineCause.cause)) {
+            if(csrMIntDelegation & (1 << cause.cause)) {
                 trap_dest = 1;
             }
         }
         else {
             // Trap caused by exception
-            if(csrMExceptionDelegation & (1 << csrMachineCause.cause)) {
+            if(csrMExceptionDelegation & (1 << cause.cause)) {
                 trap_dest = 1;
             }
         }
@@ -132,8 +143,24 @@ void RV64Core::raiseTrap(CSReg_Cause_t cause, uint64_t tval)
         csrSupervisorStatus.sie = 0;
         csrSupervisorStatus.spp = (uint64_t)currentPrivMode;
         trapProgramCounter = (csrSTrapVecBaseAddr.base << 2) +
-                             ((csrSTrapVecBaseAddr.mode == 1) ? (csrMachineCause.cause * 4) : 0);
+                             ((csrSTrapVecBaseAddr.mode == 1) ? (csrSupervisorCause.cause * 4) : 0);
         nextPrivMode = S_MODE;
     }
+    else if(trap_dest == 0) {
+        // Trap to M_MODE
+        csrMachineTrapVal = tval;
+        csrMachineCause.val = cause.val;
+        csrMExceptionPC = currentProgramCounter;
+        csrMachineStatus.mpie = csrMachineStatus.mie;
+        csrMachineStatus.mie = 0;
+        csrMachineStatus.mpp = currentPrivMode;
+        trapProgramCounter = (csrMTrapVecBaseAddr.base << 2) +
+                             ((csrMTrapVecBaseAddr.mode == 1) ? (csrMachineCause.cause * 4) : 0);
+        nextPrivMode = M_MODE;
+    }
+    else {
+        assert(0);  // Never reach here
+    }
 
+    if(cause.cause == exc_instr_pgfault && tval == trapProgramCounter) { assert(false); }
 }
