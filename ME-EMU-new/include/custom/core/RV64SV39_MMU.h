@@ -9,13 +9,18 @@ enum VAddr_RW_Feedback : uint16_t {
 
 
 class RV64SV39_MMU : public MMU_I {
-
     // ----- Interface implementation
 public:
     VAddr_RW_Feedback_e PAddr_ReadBuffer_MMU_API(uint64_t begin_addr, uint64_t size, uint8_t *buffer) override;
     VAddr_RW_Feedback_e PAddr_WriteBuffer_MMU_API(uint64_t begin_addr, uint64_t size, uint8_t *buffer) override;
 
+    // ----- Constructor
+public:
+    RV64SV39_MMU(MMIOBus_I* bus) : MMU_I(bus) {}
+private:
+    RV64SV39_MMU() : MMU_I(nullptr) {}
 
+    // ----- Member functions
 };
 
 

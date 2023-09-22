@@ -119,6 +119,14 @@ private:
     sv39_tlb_entry tlb[nr_tlb_entry];
 
 
+    /**
+     * Get PTE from virtual address ?
+     * @param satp page table base addr
+     * @param va_in virtual address
+     * @param pte_out pte to be returned
+     * @param pagesize
+     * @return
+     */
     bool ptw(SATP_Reg_t satp, uint64_t va_in, SV39_PageTableEntry_t &pte_out, uint64_t &pagesize) {
         SV39_VAddr_t *va = (SV39_VAddr_t*)&va_in;
         if (satp.mode != 8) return false; // mode is not sv39
