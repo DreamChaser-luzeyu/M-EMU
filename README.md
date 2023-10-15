@@ -8,7 +8,7 @@ This project is developed based on [cemu](https://github.com/cyyself/cemu) and i
   - MMIO-based peripherial framework
   - ISA-independent core interface
 - Easy to read & well-commented code style
-- GDB Stub support (under development)
+- GDB Remote Serial Protocol support (not implemented)
 
 ## Design
 ![design](me-emu.svg)
