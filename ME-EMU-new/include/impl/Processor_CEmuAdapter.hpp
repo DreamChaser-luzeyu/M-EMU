@@ -17,26 +17,26 @@ private:
     rv_systembus busAdapter;
     // ----- Interface implementation
 public:
-    FuncReturnFeedback_t DumpRegister_CoreAPI(std::vector<RegisterItem_t> &regs) override {
+    FuncReturnFeedback_e DumpRegister_CoreAPI(std::vector<RegisterItem_t> &regs) override {
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t Step_CoreAPI() override {
+    FuncReturnFeedback_e Step_CoreAPI() override {
         cemuCore->step(intStatus->meip, intStatus->msip, intStatus->mtip, intStatus->seip);
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t DumpProgramCounter_CoreAPI(RegisterItem_t &reg) override {
+    FuncReturnFeedback_e DumpProgramCounter_CoreAPI(RegisterItem_t &reg) override {
         assert(0);  // Not implemented
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t WriteProgramCounter_CoreAPI(RegItemVal_t reg) override {
+    FuncReturnFeedback_e WriteProgramCounter_CoreAPI(RegItemVal_t reg) override {
         cemuCore->jump(reg.u64_val);
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t setRegByIndex_CoreAPI(uint8_t gpr_index, int64_t val) {
+    FuncReturnFeedback_e setRegByIndex_CoreAPI(uint8_t gpr_index, int64_t val) {
         cemuCore->set_GPR(gpr_index, val);
         return MEMU_OK;
     }

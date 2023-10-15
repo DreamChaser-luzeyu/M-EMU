@@ -12,7 +12,7 @@ private:
     mmio_dev* cemuDev;
     // ----- Interface implementation
 public:
-    FuncReturnFeedback_t ReadBuffer_MMIODev_API (uint64_t begin_addr, uint64_t size, uint8_t* buffer) override {
+    FuncReturnFeedback_e ReadBuffer_MMIODev_API (uint64_t begin_addr, uint64_t size, uint8_t* buffer) override {
         // Check if relative address in range
         assert(begin_addr + size <= this->addrRegionSize);   // TODO: Replace with panic function
         // Do access device
@@ -21,7 +21,7 @@ public:
         return MEMU_OK;
     }
     // begin_addr should be in range [0, addrRegionSize]
-    FuncReturnFeedback_t WriteBuffer_MMIODev_API(uint64_t begin_addr, uint64_t size, const uint8_t* buffer) override {
+    FuncReturnFeedback_e WriteBuffer_MMIODev_API(uint64_t begin_addr, uint64_t size, const uint8_t* buffer) override {
         // Check if relative address in range
         assert(begin_addr + size <= this->addrRegionSize);   // TODO: Replace with panic function
         // Do access device

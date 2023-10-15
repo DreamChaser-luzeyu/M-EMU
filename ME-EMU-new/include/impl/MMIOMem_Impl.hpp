@@ -15,7 +15,7 @@ private:
     // ----- Interface implementation
 public:
 
-    FuncReturnFeedback_t ReadBuffer_MMIODev_API(uint64_t begin_addr, uint64_t size, uint8_t *buffer) override {
+    FuncReturnFeedback_e ReadBuffer_MMIODev_API(uint64_t begin_addr, uint64_t size, uint8_t *buffer) override {
         assert(begin_addr >= 0);
         if(!buffer) { return MEMU_INVALID_PARAM; }
         uint64_t begin_index = begin_addr;
@@ -24,7 +24,7 @@ public:
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t WriteBuffer_MMIODev_API(uint64_t begin_addr, uint64_t size, const uint8_t *buffer) override {
+    FuncReturnFeedback_e WriteBuffer_MMIODev_API(uint64_t begin_addr, uint64_t size, const uint8_t *buffer) override {
         assert(begin_addr >= 0);
         if(!buffer) { return MEMU_INVALID_PARAM; }
         uint64_t begin_index = begin_addr;

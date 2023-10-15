@@ -24,7 +24,7 @@ public:
      *      - MEMU_INVALID_ADDR
      *      - MEMU_ALIGNMENT_ERROR
      */
-    virtual FuncReturnFeedback_t PAddr_ReadBuffer_MMIOBus_API(uint64_t begin_addr, uint64_t size, uint8_t* buffer) = 0;
+    virtual FuncReturnFeedback_e PAddr_ReadBuffer_MMIOBus_API(uint64_t begin_addr, uint64_t size, uint8_t* buffer) = 0;
 
     /**
      * @brief Write data from physical memory
@@ -36,7 +36,7 @@ public:
      *      - MEMU_INVALID_ADDR
      *      - MEMU_ALIGNMENT_ERROR
      */
-    virtual FuncReturnFeedback_t PAddr_WriteBuffer_MMIOBus_API(uint64_t begin_addr, uint64_t size, const uint8_t* buffer) = 0;
+    virtual FuncReturnFeedback_e PAddr_WriteBuffer_MMIOBus_API(uint64_t begin_addr, uint64_t size, const uint8_t* buffer) = 0;
 
     /**
      *
@@ -44,7 +44,7 @@ public:
      * @param size
      * @return
      */
-    virtual FuncReturnFeedback_t RegisterMMIODev_MMIOBus_API(MMIODev_I* dev, uint64_t begin_addr) = 0;
+    virtual FuncReturnFeedback_e RegisterMMIODev_MMIOBus_API(MMIODev_I* dev, uint64_t begin_addr) = 0;
 
     /**
      * Mark address region [begin_addr, begin_addr + size] as `preserved` for atomic memory operation
@@ -53,7 +53,7 @@ public:
      * @param buffer
      * @return
      */
-    FuncReturnFeedback_t PAddr_PreserveAndReadBuffer_MMIOBus_API(uint16_t preserver_hart_id, uint64_t begin_addr,
+    FuncReturnFeedback_e PAddr_PreserveAndReadBuffer_MMIOBus_API(uint16_t preserver_hart_id, uint64_t begin_addr,
                                                                  uint64_t size, uint8_t* buffer) {
         this->preservedBaseAddr = begin_addr;
         this->preservedSize = size;
@@ -66,7 +66,7 @@ public:
         return PAddr_ReadBuffer_MMIOBus_API(begin_addr, size, buffer);
     }
 
-    FuncReturnFeedback_t PAddr_CheckExclusiveAndWriteBuffer_MMIOBus_API(uint16_t modifier_hart_id, uint8_t* buffer) {
+    FuncReturnFeedback_e PAddr_CheckExclusiveAndWriteBuffer_MMIOBus_API(uint16_t modifier_hart_id, uint8_t* buffer) {
         // Calling without marking any address region reserved
         if(!(this->preservedSize)) { return MEMU_INVALID_STATE; }
         assert(this->preservedDataBuffer);

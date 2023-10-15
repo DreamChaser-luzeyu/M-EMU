@@ -44,17 +44,17 @@ public:
      * @brief Dump core registers to an array
      * @param regs The array to store the dump of core registers
      */
-    virtual FuncReturnFeedback_t DumpRegister_CoreAPI(std::vector<RegisterItem_t>& regs) = 0;
+    virtual FuncReturnFeedback_e DumpRegister_CoreAPI(std::vector<RegisterItem_t>& regs) = 0;
     /**
      * @brief Do fetch-and-execute an instruct
      */
-    virtual FuncReturnFeedback_t Step_CoreAPI() = 0;
+    virtual FuncReturnFeedback_e Step_CoreAPI() = 0;
 
-    virtual FuncReturnFeedback_t DumpProgramCounter_CoreAPI(RegisterItem_t& reg) = 0;
+    virtual FuncReturnFeedback_e DumpProgramCounter_CoreAPI(RegisterItem_t& reg) = 0;
 
-    virtual FuncReturnFeedback_t WriteProgramCounter_CoreAPI(RegItemVal_t reg_val) = 0;
+    virtual FuncReturnFeedback_e WriteProgramCounter_CoreAPI(RegItemVal_t reg_val) = 0;
 
-    virtual FuncReturnFeedback_t setRegByIndex_CoreAPI(uint8_t gpr_index, int64_t val) = 0;
+    virtual FuncReturnFeedback_e setRegByIndex_CoreAPI(uint8_t gpr_index, int64_t val) = 0;
 
     // ----- Member functions
 public:

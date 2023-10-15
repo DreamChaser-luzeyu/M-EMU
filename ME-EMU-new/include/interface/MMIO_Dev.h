@@ -19,9 +19,9 @@ protected:
     // ----- Interfaces
 public:
     // The `begin_addr` and `begin_addr + size` should be in region [0, addrRegionSize]
-    virtual FuncReturnFeedback_t ReadBuffer_MMIODev_API (uint64_t begin_addr, uint64_t size, uint8_t* buffer) = 0;
+    virtual FuncReturnFeedback_e ReadBuffer_MMIODev_API (uint64_t begin_addr, uint64_t size, uint8_t* buffer) = 0;
 
-    virtual FuncReturnFeedback_t WriteBuffer_MMIODev_API(uint64_t begin_addr, uint64_t size, const uint8_t* buffer) = 0;
+    virtual FuncReturnFeedback_e WriteBuffer_MMIODev_API(uint64_t begin_addr, uint64_t size, const uint8_t* buffer) = 0;
 
     virtual bool GetIrqStatus() { return false; }
 

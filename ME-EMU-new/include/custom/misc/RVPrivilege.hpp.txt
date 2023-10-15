@@ -6,7 +6,7 @@
 #include <bitset>
 #include <assert.h>
 
-#include "rv_common.h"
+#include "rv_common.h.bak"
 #include "rv_systembus.hpp"
 #include "RVTLB_SV39.hpp"
 
@@ -190,8 +190,8 @@ public:
                 break;
             }
             case csr_cycle: {
-                csr_counteren_def *mcen = (csr_counteren_def*)&mcounteren;
-                csr_counteren_def *scen = (csr_counteren_def*)&scounteren;
+                CSR_CounterEN_t *mcen = (CSR_CounterEN_t*)&mcounteren;
+                CSR_CounterEN_t *scen = (CSR_CounterEN_t*)&scounteren;
                 if (cur_priv <= S_MODE && (!mcen->cycle || !scen->cycle)) return false;
                 csr_result = mcycle;
                 break;
@@ -350,19 +350,19 @@ public:
     /**
      * Instruction fetch
      * @param start_addr virtual address
-     * @param size
-     * @param buffer
-     * @param bad_va
+     * @param size size to read
+     * @param buffer buffer to store data
+     * @param bad_va byte aligned va, the actual start_addr
      * @return Execution result
      */
     rv_exc_code va_if(uint64_t start_addr, uint64_t size, uint8_t *buffer, uint64_t &bad_va) {
         // Address is not 4-byte aligned
         if (size == 4 && start_addr % 4 == 2) {
             rv_exc_code res0 = va_if(start_addr,2,buffer,bad_va);
-            if (res0 != EXEC_OK) return res0;
+            if (res0 != exc_ok) return res0;
             rv_exc_code res1 = va_if(start_addr+2,2,buffer+2,bad_va);
-            if (res1 != EXEC_OK) return res1;
-            return EXEC_OK;
+            if (res1 != exc_ok) return res1;
+            return exc_ok;
         }
         else {
             bad_va = start_addr;
@@ -370,7 +370,7 @@ public:
             if ( cur_priv == M_MODE || satp_reg->mode == 0) {
                 bool pstatus = bus.pa_read(start_addr,size,buffer);
                 if (!pstatus) return exc_instr_acc_fault;
-                else return EXEC_OK;
+                else return exc_ok;
             }
             else {
                 // Note: If the pc misalign but didn't beyond page range, the exception should be raised by core.
@@ -381,7 +381,7 @@ public:
                 uint64_t pa = tlb_e->ppa + (start_addr % ( (tlb_e->pagesize==1)?(1<<12):((tlb_e->pagesize==2)?(1<<21):(1<<30))));
                 bool pstatus = bus.pa_read(pa,size,buffer);
                 if (!pstatus) return exc_instr_acc_fault;
-                else return EXEC_OK;
+                else return exc_ok;
             }
         }
     }
@@ -392,9 +392,10 @@ public:
         if ( (cur_priv == M_MODE && (!mstatus->mprv || mstatus->mpp == M_MODE)) || satp_reg->mode == 0) {
             bool pstatus = bus.pa_read(start_addr,size,buffer);
             if (!pstatus) return exc_load_acc_fault;
-            else return EXEC_OK;
+            else return exc_ok;
         }
         else {
+            // Not at same page
             if ((start_addr >> 12) != ((start_addr + size - 1) >> 12)) return exc_load_misalign;
             sv39_tlb_entry *tlb_e = sv39.local_tlbe_get(*satp_reg,start_addr);
             if (!tlb_e || !tlb_e->A || (!tlb_e->R && !(mstatus->mxr && !tlb_e->X))) return exc_load_pgfault;
@@ -404,7 +405,7 @@ public:
             uint64_t pa = tlb_e->ppa + (start_addr % ( (tlb_e->pagesize==1)?(1<<12):((tlb_e->pagesize==2)?(1<<21):(1<<30))));
             bool pstatus = bus.pa_read(pa,size,buffer);
             if (!pstatus) return exc_load_acc_fault;
-            else return EXEC_OK;
+            else return exc_ok;
         }
     }
 
@@ -429,7 +430,7 @@ public:
             }
             bool pstatus = bus.pa_write(start_addr,size,buffer);
             if (!pstatus) return exc_store_acc_fault;
-            else return EXEC_OK;
+            else return exc_ok;
         }
         else {
             if ((start_addr >> 12) != ((start_addr + size - 1) >> 12)) return exc_store_misalign;
@@ -454,12 +455,13 @@ public:
                     }
                 }
             }
-            bool pstatus = bus.pa_write(pa,size,buffer);
+            bool pstatus = bus.pa_write(pa,size,buffer);static_cast<
             if (!pstatus) return exc_store_pgfault;
-            else return EXEC_OK;
+            else return exc_ok;
         }
     }
     // note: core should check whether amoop and start_addr is valid
+    // Load Reserved
     rv_exc_code va_lr(uint64_t start_addr, uint64_t size, uint8_t *buffer) {
         assert(size == 4 || size == 8);
         const SATP_Reg_t *satp_reg = (SATP_Reg_t *)&satp;
@@ -467,7 +469,7 @@ public:
         if ( (cur_priv == M_MODE && (!mstatus->mprv || mstatus->mpp == M_MODE)) || satp_reg->mode == 0) {
             bool pstatus = bus.pa_lr(start_addr,size,buffer,hart_id);
             if (!pstatus) return exc_store_acc_fault;
-            else return EXEC_OK;
+            else return exc_ok;
         }
         else {
             if ((start_addr >> 12) != ((start_addr + size - 1) >> 12)) return exc_store_misalign;
@@ -479,10 +481,11 @@ public:
             uint64_t pa = tlb_e->ppa + (start_addr % ( (tlb_e->pagesize==1)?(1<<12):((tlb_e->pagesize==2)?(1<<21):(1<<30))));
             bool pstatus = bus.pa_lr(pa,size,buffer,hart_id);
             if (!pstatus) return exc_store_acc_fault;
-            else return EXEC_OK;
+            else return exc_ok;
         }
     }
     // Note: if va_sc return != exc_custom_ok, sc_fail shouldn't commit.
+    // Store Condition
     rv_exc_code va_sc(uint64_t start_addr, uint64_t size, const uint8_t *buffer, bool &sc_fail) {
         assert(size == 4 || size == 8);
         const SATP_Reg_t *satp_reg = (SATP_Reg_t *)&satp;
@@ -490,7 +493,7 @@ public:
         if ( (cur_priv == M_MODE && (!mstatus->mprv || mstatus->mpp == M_MODE)) || satp_reg->mode == 0) {
             bool pstatus = bus.pa_sc(start_addr,size,buffer,hart_id,sc_fail);
             if (!pstatus) return exc_store_acc_fault;
-            else return EXEC_OK;
+            else return exc_ok;
         }
         else {
             if ((start_addr >> 12) != ((start_addr + size - 1) >> 12)) return exc_store_misalign;
@@ -502,7 +505,7 @@ public:
             uint64_t pa = tlb_e->ppa + (start_addr % ( (tlb_e->pagesize==1)?(1<<12):((tlb_e->pagesize==2)?(1<<21):(1<<30))));
             bool pstatus = bus.pa_sc(pa,size,buffer,hart_id,sc_fail);
             if (!pstatus) return exc_store_pgfault;
-            else return EXEC_OK;
+            else return exc_ok;
         }
     }
     rv_exc_code va_amo(uint64_t start_addr, uint64_t size, amo_funct op, int64_t src, int64_t &dst) {
@@ -512,7 +515,7 @@ public:
         if ( (cur_priv == M_MODE && (!mstatus->mprv || mstatus->mpp == M_MODE)) || satp_reg->mode == 0) {
             bool pstatus = bus.pa_amo_op(start_addr,size,op,src,dst);
             if (!pstatus) return exc_store_acc_fault;
-            else return EXEC_OK;
+            else return exc_ok;
         }
         else {
             if ((start_addr >> 12) != ((start_addr + size - 1) >> 12)) return exc_store_misalign;
@@ -524,7 +527,7 @@ public:
             uint64_t pa = tlb_e->ppa + (start_addr % ( (tlb_e->pagesize==1)?(1<<12):((tlb_e->pagesize==2)?(1<<21):(1<<30))));
             bool pstatus = bus.pa_amo_op(pa,size,op,src,dst);
             if (!pstatus) return exc_store_pgfault;
-            else return EXEC_OK;
+            else return exc_ok;
         }
     }
 
@@ -665,7 +668,7 @@ private:
         // Note: WFI is not affacted by mstatus.mie and mstatus.sie and mideleg, but we implement WFI as nop currently.
         csr_mstatus_def *mstatus = (csr_mstatus_def*)&status;
         uint64_t int_bits = ip & ie;
-        uint64_t final_int_index = EXEC_OK;
+        uint64_t final_int_index = exc_ok;
         if (cur_priv == M_MODE) {
             // Note: We should use mideleg as interrupt disable in M-Mode as interrupts didn't transfer to lower levels.
            uint64_t mmode_int_bits = int_bits & (~mideleg);
@@ -682,7 +685,7 @@ private:
                 if (mstatus->mie || cur_priv < M_MODE) final_int_index = int_index;
             }
         }
-        if(final_int_index != EXEC_OK) raise_trap(csr_cause_def(final_int_index, 1));
+        if(final_int_index != exc_ok) raise_trap(csr_cause_def(final_int_index, 1));
     }
     // status
     const uint64_t &cur_pc;

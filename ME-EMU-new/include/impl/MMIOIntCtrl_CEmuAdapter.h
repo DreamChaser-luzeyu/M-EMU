@@ -1,7 +1,16 @@
 #pragma once
 
 #include "interface/IntCtrl.h"
+#include "custom/core/RV64_IntStatus.h"
+#include <map>
 
+//struct IntStatus {
+//    bool meip;
+//    bool msip;
+//    bool mtip;
+//    bool seip;
+//};
+//typedef IntStatus IntStatus_t;
 
 class CemuClintAdapter : public IntCtrl_I {
     // ----- Fields
@@ -15,7 +24,7 @@ private:
 
     // ----- Interface implementation
 public:
-    FuncReturnFeedback_t ReadBuffer_MMIODev_API (uint64_t begin_addr, uint64_t size, uint8_t* buffer) override {
+    FuncReturnFeedback_e ReadBuffer_MMIODev_API (uint64_t begin_addr, uint64_t size, uint8_t* buffer) override {
         // Check if relative address in range
         assert(begin_addr + size <= this->addrRegionSize);   // TODO: Replace with panic function
         // Do access device
@@ -24,7 +33,7 @@ public:
         return MEMU_UNKNOWN;
     }
     // begin_addr should be in range [0, addrRegionSize]
-    FuncReturnFeedback_t WriteBuffer_MMIODev_API(uint64_t begin_addr, uint64_t size, const uint8_t* buffer) override {
+    FuncReturnFeedback_e WriteBuffer_MMIODev_API(uint64_t begin_addr, uint64_t size, const uint8_t* buffer) override {
         // Check if relative address in range
         assert(begin_addr + size <= this->addrRegionSize);   // TODO: Replace with panic function
         // Do access device
@@ -33,18 +42,18 @@ public:
         return MEMU_UNKNOWN;
     }
 
-    FuncReturnFeedback_t SetCoreState_IntCtrl_API() override {
+    FuncReturnFeedback_e SetCoreState_IntCtrl_API() override {
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t RegisterDev_IntCtrl_API(uint32_t int_id, MMIODev_I *dev) override {
+    FuncReturnFeedback_e RegisterDev_IntCtrl_API(uint32_t int_id, MMIODev_I *dev) override {
         // Interrupt already allocated!
         if(intDevMap.find(int_id) != intDevMap.end()) { return MEMU_INTNUM_CONFLICT; }
         intDevMap[int_id] = dev;
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t UnregisterDev_IntCtrl_API(uint32_t int_id) override {
+    FuncReturnFeedback_e UnregisterDev_IntCtrl_API(uint32_t int_id) override {
         auto it = intDevMap.find(int_id);
         // Check if interrupt `int_id` allocated
         if(it == intDevMap.end()) { return MEMU_NOT_FOUND; }
@@ -52,7 +61,7 @@ public:
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t UnregisterDev_IntCtrl_API(MMIODev_I *dev) override {
+    FuncReturnFeedback_e UnregisterDev_IntCtrl_API(MMIODev_I *dev) override {
         bool found = false;
         uint32_t int_id;
         for(auto p : intDevMap) {
@@ -66,7 +75,7 @@ public:
         return MEMU_NOT_FOUND;
     }
 
-    FuncReturnFeedback_t UpdateIntState_IntCtrl_API() override {
+    FuncReturnFeedback_e UpdateIntState_IntCtrl_API() override {
         intCtrl->tick();
         this->core0IntStatus->msip = intCtrl->m_s_irq(0);
         this->core0IntStatus->mtip = intCtrl->m_t_irq(0);
@@ -89,13 +98,13 @@ private:
 public:
     mmio_dev* getCEMUDev() { return this->intCtrl; }
 
-    FuncReturnFeedback_t setCore0IntStatusPtr(IntStatus_t* int_status) {
+    FuncReturnFeedback_e setCore0IntStatusPtr(IntStatus_t* int_status) {
         if(!int_status) { assert(0); }
         this->core0IntStatus = int_status;
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t setCore1IntStatusPtr(IntStatus_t* int_status) {
+    FuncReturnFeedback_e setCore1IntStatusPtr(IntStatus_t* int_status) {
         if(!int_status) { assert(0); }
         this->core1IntStatus = int_status;
         return MEMU_OK;
@@ -116,7 +125,7 @@ private:
 
     // ----- Interface implementation
 public:
-    FuncReturnFeedback_t ReadBuffer_MMIODev_API (uint64_t begin_addr, uint64_t size, uint8_t* buffer) override {
+    FuncReturnFeedback_e ReadBuffer_MMIODev_API (uint64_t begin_addr, uint64_t size, uint8_t* buffer) override {
         // Check if relative address in range
         assert(begin_addr + size <= this->addrRegionSize);   // TODO: Replace with panic function
         // Do access device
@@ -125,7 +134,7 @@ public:
         return MEMU_UNKNOWN;
     }
     // begin_addr should be in range [0, addrRegionSize]
-    FuncReturnFeedback_t WriteBuffer_MMIODev_API(uint64_t begin_addr, uint64_t size, const uint8_t* buffer) override {
+    FuncReturnFeedback_e WriteBuffer_MMIODev_API(uint64_t begin_addr, uint64_t size, const uint8_t* buffer) override {
         // Check if relative address in range
         assert(begin_addr + size <= this->addrRegionSize);   // TODO: Replace with panic function
         // Do access device
@@ -134,18 +143,18 @@ public:
         return MEMU_UNKNOWN;
     }
 
-    FuncReturnFeedback_t SetCoreState_IntCtrl_API() override {
+    FuncReturnFeedback_e SetCoreState_IntCtrl_API() override {
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t RegisterDev_IntCtrl_API(uint32_t int_id, MMIODev_I *dev) override {
+    FuncReturnFeedback_e RegisterDev_IntCtrl_API(uint32_t int_id, MMIODev_I *dev) override {
         // Interrupt already allocated!
         if(intDevMap.find(int_id) != intDevMap.end()) { return MEMU_INTNUM_CONFLICT; }
         intDevMap[int_id] = dev;
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t UnregisterDev_IntCtrl_API(uint32_t int_id) override {
+    FuncReturnFeedback_e UnregisterDev_IntCtrl_API(uint32_t int_id) override {
         auto it = intDevMap.find(int_id);
         // Check if interrupt `int_id` allocated
         if(it == intDevMap.end()) { return MEMU_NOT_FOUND; }
@@ -153,7 +162,7 @@ public:
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t UnregisterDev_IntCtrl_API(MMIODev_I *dev) override {
+    FuncReturnFeedback_e UnregisterDev_IntCtrl_API(MMIODev_I *dev) override {
         bool found = false;
         uint32_t int_id;
         for(auto p : intDevMap) {
@@ -167,7 +176,7 @@ public:
         return MEMU_NOT_FOUND;
     }
 
-    FuncReturnFeedback_t UpdateIntState_IntCtrl_API() override {
+    FuncReturnFeedback_e UpdateIntState_IntCtrl_API() override {
         for(auto it : intDevMap) {
             intCtrl->update_ext((int)(it.first), it.second->GetIrqStatus());
         }
@@ -194,13 +203,13 @@ private:
 public:
     mmio_dev* getCEMUDev() { return this->intCtrl; }
 
-    FuncReturnFeedback_t setCore0IntStatusPtr(IntStatus_t* int_status) {
+    FuncReturnFeedback_e setCore0IntStatusPtr(IntStatus_t* int_status) {
         if(!int_status) { assert(0); }
         this->core0IntStatus = int_status;
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t setCore1IntStatusPtr(IntStatus_t* int_status) {
+    FuncReturnFeedback_e setCore1IntStatusPtr(IntStatus_t* int_status) {
         if(!int_status) { assert(0); }
         this->core1IntStatus = int_status;
         return MEMU_OK;

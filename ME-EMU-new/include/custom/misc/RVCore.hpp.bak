@@ -3,7 +3,7 @@
 
 #include <bitset>
 #include <queue>
-#include "rv_common.h"
+#include "rv_common.h.bak"
 #include <assert.h>
 #include "rv_systembus.hpp"
 #include "RVPrivilege.hpp"
@@ -11,7 +11,7 @@
 
 extern bool riscv_test;
 
-enum alu_op {
+enum ALU_Op_enum {
     ALU_ADD, ALU_SUB, ALU_SLL, ALU_SLT, ALU_SLTU, ALU_XOR, ALU_SRL, ALU_SRA, ALU_OR, ALU_AND,
     ALU_MUL, ALU_MULH, ALU_MULHU, ALU_MULHSU, ALU_DIV, ALU_DIVU, ALU_REM, ALU_REMU,
     ALU_NOP
@@ -83,7 +83,7 @@ private:
             goto exception;
         }
         if_exc = priv.va_if(pc,4,(uint8_t*)&cur_instr,pc_bad_va);
-        if (if_exc != EXEC_OK) {
+        if (if_exc != exc_ok) {
             priv.raise_trap(csr_cause_def(if_exc),pc_bad_va);
             goto exception;
         }
@@ -244,8 +244,8 @@ private:
             }
             case OPCODE_OPIMM: {
                 int64_t imm = inst->i_type.imm12;
-                funct6 fun6 = static_cast<funct6>((inst->r_type.funct7) >> 1);
-                alu_op op;
+                Funct6_Op_enum fun6 = static_cast<Funct6_Op_enum>((inst->r_type.funct7) >> 1);
+                ALU_Op_enum op;
                 switch (inst->i_type.funct3) {
                     case FUNCT3_ADD_SUB:
                         op = ALU_ADD;
@@ -285,8 +285,8 @@ private:
             }
             case OPCODE_OPIMM32: {
                 int64_t imm = inst->i_type.imm12;
-                funct7 fun7 = static_cast<funct7>((inst->r_type.funct7));
-                alu_op op;
+                Funct7_Op_enum fun7 = static_cast<Funct7_Op_enum>((inst->r_type.funct7));
+                ALU_Op_enum op;
                 switch (inst->i_type.funct3) {
                     case FUNCT3_ADD_SUB:
                         op = ALU_ADD;
@@ -311,7 +311,7 @@ private:
                 break;
             }
             case OPCODE_OP: {
-                alu_op op = ALU_NOP;
+                ALU_Op_enum op = ALU_NOP;
                 switch (inst->r_type.funct7) {
                     case FUNCT7_NORMAL: {
                         switch (inst->r_type.funct3) {
@@ -398,7 +398,7 @@ private:
                 break;
             }
             case OPCODE_OP32: {
-                alu_op op = ALU_NOP;
+                ALU_Op_enum op = ALU_NOP;
                 switch (inst->r_type.funct7) {
                     case FUNCT7_NORMAL: {
                         switch (inst->r_type.funct3) {
@@ -473,13 +473,13 @@ private:
                             if (inst->r_type.funct3 == 0b011) {
                                 int64_t result;
                                 rv_exc_code exc = priv.va_lr(GPR[inst->r_type.rs1],(1<<inst->r_type.funct3),(uint8_t*)&result);
-                                if (exc == EXEC_OK) set_GPR(inst->r_type.rd, result);
+                                if (exc == exc_ok) set_GPR(inst->r_type.rd, result);
                                 else priv.raise_trap(csr_cause_def(exc),GPR[inst->r_type.rs1]);
                             }
                             else {
                                 int32_t result;
                                 rv_exc_code exc = priv.va_lr(GPR[inst->r_type.rs1],(1<<inst->r_type.funct3),(uint8_t*)&result);
-                                if (exc == EXEC_OK) set_GPR(inst->r_type.rd, result);
+                                if (exc == exc_ok) set_GPR(inst->r_type.rd, result);
                                 else priv.raise_trap(csr_cause_def(exc),GPR[inst->r_type.rs1]);
                             }
                         }
@@ -488,14 +488,14 @@ private:
                     case AMOSC: {
                         bool result;
                         rv_exc_code exc = priv.va_sc(GPR[inst->r_type.rs1],(1<<inst->r_type.funct3),(uint8_t*)&GPR[inst->r_type.rs2],result);
-                        if (exc == EXEC_OK) set_GPR(inst->r_type.rd, result);
+                        if (exc == exc_ok) set_GPR(inst->r_type.rd, result);
                         else priv.raise_trap(csr_cause_def(exc),GPR[inst->r_type.rs1]);
                         break;
                     }
                     case AMOSWAP: case AMOADD: case AMOXOR: case AMOAND: case AMOOR: case AMOMIN: case AMOMAX: case AMOMINU: case AMOMAXU: {
                         int64_t result;
                         rv_exc_code exc = priv.va_amo(GPR[inst->r_type.rs1],(1<<inst->r_type.funct3),static_cast<amo_funct>(funct5),GPR[inst->r_type.rs2],result);
-                        if (exc == EXEC_OK) set_GPR(inst->r_type.rd, result);
+                        if (exc == exc_ok) set_GPR(inst->r_type.rd, result);
                         else priv.raise_trap(csr_cause_def(exc),GPR[inst->r_type.rs1]);
                         break;
                     }
@@ -907,7 +907,7 @@ private:
             return false;
         }
         rv_exc_code va_err = priv.va_read(start_addr,size,buffer);
-        if (va_err == EXEC_OK) {
+        if (va_err == exc_ok) {
             return true;
 
         }
@@ -923,7 +923,7 @@ private:
             return false;
         }
         rv_exc_code va_err = priv.va_write(start_addr,size,buffer);
-        if (va_err == EXEC_OK) {
+        if (va_err == exc_ok) {
             return true;
         }
         else {
@@ -931,7 +931,7 @@ private:
             return false;
         }
     }
-    int64_t alu_exec(int64_t a, int64_t b, alu_op op, bool op_32 = false) {
+    int64_t alu_exec(int64_t a, int64_t b, ALU_Op_enum op, bool op_32 = false) {
         if (op_32) {
             a = (int32_t)a;
             b = (int32_t)b;

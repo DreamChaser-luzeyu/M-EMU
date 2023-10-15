@@ -5,6 +5,7 @@
 #include <cstring>
 #include <climits>
 #include <bitset>
+#include <cassert>
 
 // We need 2 context corresponding to meip and seip per hart.
 template <int nr_source = 1, int nr_context = 2>

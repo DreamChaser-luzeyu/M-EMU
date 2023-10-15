@@ -14,7 +14,7 @@ private:
     std::vector<MMIODev_I*> mmioDevs;
     // ----- Interface implementation
 public:
-    FuncReturnFeedback_t PAddr_ReadBuffer_MMIOBus_API(uint64_t begin_addr, uint64_t size, uint8_t *buffer) override {
+    FuncReturnFeedback_e PAddr_ReadBuffer_MMIOBus_API(uint64_t begin_addr, uint64_t size, uint8_t *buffer) override {
         if(!buffer) { return MEMU_NULL_PTR; }
 
         MMIODevHandle_t dev;
@@ -26,7 +26,7 @@ public:
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t PAddr_WriteBuffer_MMIOBus_API(uint64_t begin_addr, uint64_t size, const uint8_t *buffer) override {
+    FuncReturnFeedback_e PAddr_WriteBuffer_MMIOBus_API(uint64_t begin_addr, uint64_t size, const uint8_t *buffer) override {
         if(!buffer) { return MEMU_NULL_PTR; }
 
         MMIODevHandle_t dev;
@@ -38,7 +38,7 @@ public:
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_t RegisterMMIODev_MMIOBus_API(MMIODev_I* dev, uint64_t base_addr) override {
+    FuncReturnFeedback_e RegisterMMIODev_MMIOBus_API(MMIODev_I* dev, uint64_t base_addr) override {
         // Set dev base address to device
         dev->setDevBaseAddr(base_addr);
         // Check if address region conflicts
@@ -58,7 +58,7 @@ public:
 
     // ----- Member functions
 private:
-    FuncReturnFeedback_t findDevAccordingToAddr(uint64_t addr, MMIODevHandle_t* dev_ret) {
+    FuncReturnFeedback_e findDevAccordingToAddr(uint64_t addr, MMIODevHandle_t* dev_ret) {
         // TODO: Replace with binary search for better performance
         for(auto d : this->mmioDevs) {
             if(d->isAddrInRange(addr)) {

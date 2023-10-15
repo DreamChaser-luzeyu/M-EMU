@@ -14,4 +14,4 @@ typedef enum {
     MEMU_INVALID_ADDR,          ///< The address (in the emulator) is invalid
     MEMU_PANIC,
     MEMU_UNKNOWN
-} FuncReturnFeedback_t;
+} FuncReturnFeedback_e;

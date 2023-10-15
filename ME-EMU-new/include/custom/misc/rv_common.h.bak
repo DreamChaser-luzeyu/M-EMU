@@ -58,7 +58,7 @@ union rv_instr {
 
 static_assert(sizeof(rv_instr) == 4, "Instruction Struct Error");
 
-enum rv64i_opcode {
+enum RV64I_OpCode_enum {
     OPCODE_LUI      = 0b0110111,
     OPCODE_AUIPC    = 0b0010111,
     OPCODE_JAL      = 0b1101111,
@@ -76,7 +76,7 @@ enum rv64i_opcode {
 };
 
 // Concat(instr(1,0),instr(15,13))
-enum rv64c_opcode { // without f/d
+enum RV64C_OpCode_enum { // without f/d
     OPCODE_C_ADDI4SPN=0b00000,
     OPCODE_C_LW     = 0b00010,
     OPCODE_C_LD     = 0b00011,
@@ -98,14 +98,14 @@ enum rv64c_opcode { // without f/d
     OPCODE_C_SDSP   = 0b10111
 };
 
-enum rv64c_funct2 {
+enum RV64C_Funct2_enum {
     FUNCT2_SUB      = 0b00,
     FUNCT2_XOR_ADDW = 0b01,
     FUNCT2_OR       = 0b10,
     FUNCT2_AND      = 0b11
 };
 
-enum funct3_branch {
+enum Funct3_Branch_enum {
     FUNCT3_BEQ  = 0b000,
     FUNCT3_BNE  = 0b001,
     FUNCT3_BLT  = 0b100,
@@ -113,7 +113,7 @@ enum funct3_branch {
     FUNCT3_BLTU = 0b110,
     FUNCT3_BGEU = 0b111
 };
-enum funct3_load {
+enum Funct3_Load_enum {
     FUNCT3_LB   = 0b000,
     FUNCT3_LH   = 0b001,
     FUNCT3_LW   = 0b010,
@@ -122,14 +122,14 @@ enum funct3_load {
     FUNCT3_LHU  = 0b101,
     FUNCT3_LWU  = 0b110
 };
-enum funct3_store {
+enum Funct3_Store_enum {
     FUNCT3_SB   = 0b000,
     FUNCT3_SH   = 0b001,
     FUNCT3_SW   = 0b010,
     FUNCT3_SD   = 0b011
 };
 
-enum funct3_op {
+enum Funct3_Op_enum {
     FUNCT3_ADD_SUB  = 0b000,
     FUNCT3_SLL      = 0b001,
     FUNCT3_SLT      = 0b010,
@@ -140,7 +140,7 @@ enum funct3_op {
     FUNCT3_AND      = 0b111
 };
 
-enum funct3_m {
+enum Funct3_M_enum {
     FUNCT3_MUL      = 0b000,
     FUNCT3_MULH     = 0b001,
     FUNCT3_MULHSU   = 0b010,
@@ -151,7 +151,7 @@ enum funct3_m {
     FUNCT3_REMU     = 0b111
 };
 
-enum funct3_system {
+enum Funct3_System_enum {
     FUNCT3_PRIV     = 0b000,
     FUNCT3_CSRRW    = 0b001,
     FUNCT3_CSRRS    = 0b010,
@@ -162,7 +162,7 @@ enum funct3_system {
     FUNCT3_CSRRCI   = 0b111
 };
 
-enum funct7_priv {
+enum Funct7_Priv_enum {
     FUNCT7_ECALL_EBREAK = 0b0000000,
     FUNCT7_SRET_WFI     = 0b0001000,
     FUNCT7_MRET         = 0b0011000,
@@ -183,13 +183,13 @@ enum amo_funct {
     AMOMAXU = 0b11100
 };
 
-enum funct7 {
+enum Funct7_Op_enum {
     FUNCT7_NORMAL   = 0b0000000,
     FUNCT7_SUB_SRA  = 0b0100000,
     FUNCT7_MUL      = 0b0000001
 };
 
-enum funct6 {
+enum Funct6_Op_enum {
     FUNCT6_NORMAL   = 0b000000,
     FUNCT6_SRA      = 0b010000
 };
@@ -375,7 +375,7 @@ enum rv_exc_code {
     exc_illegal_instr           = 2,
     exc_breakpoint              = 3,
     exc_load_misalign           = 4,
-    exc_load_acc_fault          = 5,
+    ex_load_acc_fault          = 5,
     exc_store_misalign          = 6,    // including amo
     exc_store_acc_fault         = 7,    // including amo
     exc_ecall_from_user         = 8,
@@ -384,12 +384,12 @@ enum rv_exc_code {
     exc_instr_pgfault           = 12,
     exc_load_pgfault            = 13,
     exc_store_pgfault           = 15,   // including amo
-    EXEC_OK               = 24
+    exc_ok                      = 24
 };
 
-const uint64_t s_exc_mask = (1<<16) - 1 - (1<<exc_ecall_from_machine);
+const uint64_t s_exc_mask = (1 << 16) - 1 - (1 << exc_ecall_from_machine);
 
-struct csr_counteren_def {
+struct CSR_CounterEN_t {
     uint64_t cycle          : 1;
     uint64_t time           : 1;
     uint64_t instr_retire   : 1;
@@ -420,11 +420,11 @@ static_assert(sizeof(SV39_PageTableEntry_t) == 8, "SV39_PageTableEntry_t shoule 
 // Note: A and D not implement. So use them as permission bit and raise page fault.
 
 // Supervisor Address Translation and Protection (satp) Register
-typedef struct {
-    uint64_t ppn    : 44;
-    uint64_t asid   : 16;
-    uint64_t mode   : 4;
-} SATP_Reg_t;
+//typedef struct {
+//    uint64_t ppn    : 44;
+//    uint64_t asid   : 16;
+//    uint64_t mode   : 4;
+//} SATP_Reg_t;
 
 typedef struct {
     uint64_t page_off   : 12;

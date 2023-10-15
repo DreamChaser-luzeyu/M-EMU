@@ -3,7 +3,7 @@
 
 #include "interface/MMIO_Bus.h"
 
-#include "rv_common.h"
+#include "rv_common.h.bak"
 #include <cstdint>
 #include <assert.h>
 #include <algorithm>
@@ -35,7 +35,7 @@ public:
 //        }
 //        else return false;
 
-        FuncReturnFeedback_t feedback = this->memuBus->PAddr_ReadBuffer_MMIOBus_API(start_addr, size, buffer);
+        FuncReturnFeedback_e feedback = this->memuBus->PAddr_ReadBuffer_MMIOBus_API(start_addr, size, buffer);
         if(feedback == MEMU_OK) { return true; }
         return false;
     }
@@ -57,7 +57,7 @@ public:
 //        }
 //        else return false;
 
-        FuncReturnFeedback_t feedback = this->memuBus->PAddr_WriteBuffer_MMIOBus_API(start_addr, size, buffer);
+        FuncReturnFeedback_e feedback = this->memuBus->PAddr_WriteBuffer_MMIOBus_API(start_addr, size, buffer);
         if(feedback == MEMU_OK) { return true; }
         return false;
     }

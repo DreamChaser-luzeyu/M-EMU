@@ -9,15 +9,16 @@ typedef enum VAddr_RW_Feedback VAddr_RW_Feedback_e;
 
 class MMU_I {
     // ----- Fields
-private:
+protected:
     MMIOBus_I* sysBus;
     // ----- Interface
 public:
-    virtual VAddr_RW_Feedback_e PAddr_ReadBuffer_MMU_API(uint64_t begin_addr, uint64_t size, uint8_t* buffer) = 0;
-    virtual VAddr_RW_Feedback_e PAddr_WriteBuffer_MMU_API(uint64_t begin_addr, uint64_t size, uint8_t* buffer) = 0;
+    virtual VAddr_RW_Feedback_e VAddr_ReadBuffer_MMU_API(uint64_t begin_addr, uint64_t size, uint8_t *buffer) = 0;
+    virtual VAddr_RW_Feedback_e VAddr_WriteBuffer_MMU_API(uint64_t begin_addr, uint64_t size, const uint8_t* buffer) = 0;
+    virtual VAddr_RW_Feedback_e VAddr_InstFetch_MMU_API(uint64_t begin_addr, uint64_t size, void* buffer) = 0;
     // ----- Constructor & Destructor
 private:
     MMU_I() {}
-public:
+protected:
     MMU_I(MMIOBus_I* sys_bus) : sysBus(sys_bus) {}
 };
