@@ -60,8 +60,8 @@ class RV64Core : public ProcessorCore_I {
     const uint8_t PC_ALIGN = 2;
     // ----- Fields
 private:
-    MMIOBus_I* sysBus;
-    uint16_t hartID;
+//    MMIOBus_I* sysBus;
+//    uint16_t hartID;
     RV64SV39_MMU* sv39MMU;
 
     // ----- Regs
@@ -119,21 +119,20 @@ public:
 
     // ----- Constructors & Destructors
     RV64Core(MMIOBus_I* sys_bus, uint16_t hart_id) :
-        sysBus(sys_bus), hartID(hart_id), csrMCycleNum(0), needTrap(false) {
+        /*sysBus(sys_bus),*/ rvHartID(hart_id), csrMCycleNum(0), needTrap(false) {
         this->intStatus = new IntStatus_t;
         intStatus->mtip = false;
         intStatus->msip = false;
         intStatus->meip = false;
         intStatus->seip = false;
         this->sv39MMU = new RV64SV39_MMU(sys_bus, currentPrivMode, satp, status, rvHartID);
-        this->rvHartID = hart_id;
+//        this->rvHartID = hart_id;
         reset();
     }
 
     // ----- Member functions
 private:
     void preExec();
-//    void decodeExec(const RVInst_t& inst, bool& is_instr_illegal);
 
     /**
      * Do calculations
@@ -153,11 +152,11 @@ private:
 
 
 
-        extern uint64_t count;
-        extern std::ofstream dump_file;
-        if(GPR_index == 18) {
-//            dump_file << "[R18] count:" << count << " val:" << value << std::endl;
-        }
+//        extern uint64_t count;
+//        extern std::ofstream dump_file;
+//        if(GPR_index == 18) {
+////            dump_file << "[R18] count:" << count << " val:" << value << std::endl;
+//        }
     }
 
     bool memRead(uint64_t start_addr, uint64_t size, uint8_t *buffer) {
@@ -184,9 +183,6 @@ private:
 
     bool memWrite(uint64_t start_addr, uint64_t size, const uint8_t *buffer) {
         if (start_addr % size != 0) {
-//            CSReg_Cause_t cause;
-//            cause.cause = exec_store_misalign;
-//            cause.interrupt = 0;
             raiseTrap({ .cause = exec_store_misalign, .interrupt = 0 },start_addr);
             return false;
         }
@@ -195,10 +191,6 @@ private:
             return true;
         }
         else {
-//            CSReg_Cause_t cause;
-//            cause.cause = va_err;
-//            cause.interrupt = 0;
-//            assert(0);
             RV64_ExecFeedbackCode_e feedback = (va_err == VADDR_ACCESS_FAULT) ? exec_store_acc_fault :
                                                (va_err == VADDR_MIS_ALIGN) ? exec_store_misalign :
                                                (va_err == VADDR_PAGE_FAULT) ? exec_store_pgfault : exec_ok;
