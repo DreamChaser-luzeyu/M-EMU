@@ -1,10 +1,10 @@
 #pragma once
 
 #include "interface/MMU.h"
-#include "RV64_structs.h"
-#include "RV64_SV39_structs.h"
-#include "RV64_CSR_structs.h"
-#include "RV_inst.h"
+#include "rv64_structs.h"
+#include "rv64_sv39_structs.h"
+#include "rv64_csr_structs.h"
+#include "rv64_inst.h"
 
 enum VAddr_RW_Feedback : uint16_t {
     VADDR_ACCESS_OK = 0,

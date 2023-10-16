@@ -1,7 +1,7 @@
 #pragma once
 
 #include "interface/IntCtrl.h"
-#include "custom/core/RV64_IntStatus.h"
+#include "custom/core/RV64_int_status.h"
 #include <map>
 
 //struct IntStatus {

@@ -13,7 +13,7 @@
 #include "custom/core/RV64SV39_MMU.h"
 
 #include "impl/MMIOBus_Impl.hpp"
-#include "impl/MMIOMem_Impl.hpp"
+#include "builtin/dev/MMIOMem_Impl.hpp"
 #include "impl/MMIODev_CEmuAdapter.hpp"
 //#include "impl/Processor_CEmuAdapter.hpp"
 #include "impl/MMIOIntCtrl_CEmuAdapter.h"
@@ -73,14 +73,14 @@ int main() {
     begin_addr.u64_val = 0x80000000;
     core_0->WriteProgramCounter_CoreAPI(begin_addr);
     core_1->WriteProgramCounter_CoreAPI(begin_addr);
-    ((RV64Core *) core_1)->setRegByIndex_CoreAPI(10, 1);
+    ((RV64Core *) core_1)->setGPRByIndex_CoreAPI(10, 1);
 
     // --- Connect core with intc
     // We cannot move clint into core because we need to attach it to the system bus
-    ((CemuPlicAdapter*)rv_plic)->setCore0IntStatusPtr(core_0->getIntStatusRef());
-    ((CemuPlicAdapter*)rv_plic)->setCore1IntStatusPtr(core_1->getIntStatusRef());
-    ((CemuClintAdapter*)rv_cli)->setCore0IntStatusPtr(core_0->getIntStatusRef());
-    ((CemuClintAdapter*)rv_cli)->setCore1IntStatusPtr(core_1->getIntStatusRef());
+    ((CemuPlicAdapter*)rv_plic)->setCore0IntStatusPtr(core_0->getIntStatusPtr_Core());
+    ((CemuPlicAdapter*)rv_plic)->setCore1IntStatusPtr(core_1->getIntStatusPtr_Core());
+    ((CemuClintAdapter*)rv_cli)->setCore0IntStatusPtr(core_0->getIntStatusPtr_Core());
+    ((CemuClintAdapter*)rv_cli)->setCore1IntStatusPtr(core_1->getIntStatusPtr_Core());
 
     // --- Connect peripheral with intc
     rv_plic->RegisterDev_IntCtrl_API(1, rv_uart);

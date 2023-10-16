@@ -2,54 +2,20 @@
 
 #include "interface/Core.h"
 #include "interface/MMIO_Bus.h"
-#include "RV64_structs.h"
-#include "RV64_CSR_structs.h"
+#include "rv64_structs.h"
+#include "rv64_csr_structs.h"
 #include "interface/MMU.h"
 #include "RV64SV39_MMU.h"
-#include "custom/core/RV64_IntStatus.h"
+#include "rv64_int_status.h"
 
 #include <iostream>
 #include <fstream>
-
-//struct IntStatus {
-//    bool meip;
-//    bool msip;
-//    bool mtip;
-//    bool seip;
-//};
-//typedef IntStatus IntStatus_t;
-
 
 enum ALU_Op_enum {
     ALU_ADD, ALU_SUB, ALU_SLL, ALU_SLT, ALU_SLTU, ALU_XOR, ALU_SRL, ALU_SRA, ALU_OR, ALU_AND,
     ALU_MUL, ALU_MULH, ALU_MULHU, ALU_MULHSU, ALU_DIV, ALU_DIVU, ALU_REM, ALU_REMU,
     ALU_NOP
 };
-
-
-static inline IntType_e bits_to_int_type(uint64_t int_bits) {
-    // According to spec, multiple simultaneous interrupts destined for M-mode are handled
-    // in the following sequence: MEI, MSI, MTI, SEI, SSI, STI.
-    if (int_bits & (1ull<<int_m_ext)) {
-        return int_m_ext;
-    }
-    else if (int_bits & (1ull<<int_m_sw)) {
-        return int_m_sw;
-    }
-    else if (int_bits & (1ull<<int_m_timer)) {
-        return int_m_timer;
-    }
-    else if (int_bits & (1ull<<int_s_ext)) {
-        return int_s_ext;
-    }
-    else if (int_bits & (1ull<<int_s_sw)) {
-        return int_s_sw;
-    }
-    else if (int_bits & (1ull<<int_s_timer)) {
-        return int_s_timer;
-    }
-    return int_no_int;
-}
 
 class RV64Core : public ProcessorCore_I {
     // ----- Constants
@@ -60,8 +26,6 @@ class RV64Core : public ProcessorCore_I {
     const uint8_t PC_ALIGN = 2;
     // ----- Fields
 private:
-//    MMIOBus_I* sysBus;
-//    uint16_t hartID;
     RV64SV39_MMU* sv39MMU;
 
     // ----- Regs
@@ -114,19 +78,18 @@ public:
     FuncReturnFeedback_e Step_CoreAPI() override;
     FuncReturnFeedback_e DumpProgramCounter_CoreAPI(RegisterItem_t& reg) override;
     FuncReturnFeedback_e WriteProgramCounter_CoreAPI(RegItemVal_t reg_val) override;
-    FuncReturnFeedback_e setRegByIndex_CoreAPI(uint8_t gpr_index, int64_t val) override;
+    FuncReturnFeedback_e setGPRByIndex_CoreAPI(uint8_t gpr_index, int64_t val) override;
 
 
     // ----- Constructors & Destructors
     RV64Core(MMIOBus_I* sys_bus, uint16_t hart_id) :
-        /*sysBus(sys_bus),*/ rvHartID(hart_id), csrMCycleNum(0), needTrap(false) {
+        rvHartID(hart_id), csrMCycleNum(0), needTrap(false) {
         this->intStatus = new IntStatus_t;
         intStatus->mtip = false;
         intStatus->msip = false;
         intStatus->meip = false;
         intStatus->seip = false;
         this->sv39MMU = new RV64SV39_MMU(sys_bus, currentPrivMode, satp, status, rvHartID);
-//        this->rvHartID = hart_id;
         reset();
     }
 
@@ -180,7 +143,6 @@ private:
             return false;
         }
     }
-
     bool memWrite(uint64_t start_addr, uint64_t size, const uint8_t *buffer) {
         if (start_addr % size != 0) {
             raiseTrap({ .cause = exec_store_misalign, .interrupt = 0 },start_addr);

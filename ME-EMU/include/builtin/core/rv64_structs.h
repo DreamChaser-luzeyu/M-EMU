@@ -27,6 +27,8 @@ typedef enum {
     exec_ok               = 24
 } RV64_ExecFeedbackCode_e;
 
+
+
 typedef enum  {
     int_s_sw    = 1,
     int_m_sw    = 3,
@@ -36,6 +38,30 @@ typedef enum  {
     int_m_ext   = 11,
     int_no_int  = 24
 } IntType_e;
+
+static inline IntType_e bits_to_int_type(uint64_t int_bits) {
+    // According to spec, multiple simultaneous interrupts destined for M-mode are handled
+    // in the following sequence: MEI, MSI, MTI, SEI, SSI, STI.
+    if (int_bits & (1ull<<int_m_ext)) {
+        return int_m_ext;
+    }
+    else if (int_bits & (1ull<<int_m_sw)) {
+        return int_m_sw;
+    }
+    else if (int_bits & (1ull<<int_m_timer)) {
+        return int_m_timer;
+    }
+    else if (int_bits & (1ull<<int_s_ext)) {
+        return int_s_ext;
+    }
+    else if (int_bits & (1ull<<int_s_sw)) {
+        return int_s_sw;
+    }
+    else if (int_bits & (1ull<<int_s_timer)) {
+        return int_s_timer;
+    }
+    return int_no_int;
+}
 
 
 // Supervisor Address Translation and Protection (satp) Register

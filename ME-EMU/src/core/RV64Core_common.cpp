@@ -18,7 +18,7 @@ FuncReturnFeedback_e RV64Core::WriteProgramCounter_CoreAPI(RegItemVal_t reg_val)
     return MEMU_OK;
 }
 
-FuncReturnFeedback_e RV64Core::setRegByIndex_CoreAPI(uint8_t gpr_index, int64_t val)
+FuncReturnFeedback_e RV64Core::setGPRByIndex_CoreAPI(uint8_t gpr_index, int64_t val)
 {
     assert(gpr_index < 32);
     if(gpr_index == 0) { return MEMU_OK; }

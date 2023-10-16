@@ -1,5 +1,5 @@
 #include "custom/core/RV64Core.h"
-#include "custom/core/RV_inst.h"
+#include "custom/core/RV64_inst.h"
 #include <fstream>
 
 uint64_t count = 0;

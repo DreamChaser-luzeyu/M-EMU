@@ -45,6 +45,7 @@ public:
      * @param regs The array to store the dump of core registers
      */
     virtual FuncReturnFeedback_e DumpRegister_CoreAPI(std::vector<RegisterItem_t>& regs) = 0;
+
     /**
      * @brief Do fetch-and-execute an instruct
      */
@@ -54,9 +55,9 @@ public:
 
     virtual FuncReturnFeedback_e WriteProgramCounter_CoreAPI(RegItemVal_t reg_val) = 0;
 
-    virtual FuncReturnFeedback_e setRegByIndex_CoreAPI(uint8_t gpr_index, int64_t val) = 0;
+    virtual FuncReturnFeedback_e setGPRByIndex_CoreAPI(uint8_t gpr_index, int64_t val) = 0;
 
     // ----- Member functions
 public:
-    IntStatus_t* getIntStatusRef() { return this->intStatus; }
+    IntStatus_t* getIntStatusPtr_Core() { return this->intStatus; }
 };
