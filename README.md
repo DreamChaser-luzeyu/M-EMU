@@ -1,6 +1,7 @@
 # ME-EMU
 ## Overview
-A modularized emulator designed to emulate embedded system
+A modularized full-system emulator.
+
 This project is developed based on [cemu](https://github.com/cyyself/cemu) and is in the early stage of development.
 
 ## Features
