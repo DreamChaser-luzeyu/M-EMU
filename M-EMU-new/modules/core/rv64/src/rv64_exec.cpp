@@ -1,5 +1,5 @@
-#include "builtin/core/RV64Core.h"
-#include "builtin/core/rv64_inst.h"
+#include "RV64Core.h"
+#include "rv64_inst.h"
 #include <fstream>
 
 uint64_t count = 0;

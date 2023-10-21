@@ -1,5 +1,6 @@
 #include <limits.h>
-#include "builtin/core/RV64Core.h"
+#include "module_manifest.hpp"
+#include "RV64Core.h"
 
 
 FuncReturnFeedback_e RV64Core::DumpRegister_CoreAPI(std::vector<RegisterItem_t> &regs)

@@ -1,0 +1,7 @@
+add_subdirectory(./core/rv64)
+add_subdirectory(./dev/uartlite)
+add_subdirectory(./dev/ram)
+add_subdirectory(./intc/rv_plic)
+add_subdirectory(./intc/rv_clint)
+add_subdirectory(./platform/default)
+add_subdirectory(./bus/default)

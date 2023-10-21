@@ -10,16 +10,16 @@
 //#include "custom/misc/RVCore.hpp.bak"
 #include "custom/misc/RVPLICtrl.hpp"
 #include "custom/misc/RVCoreLocalInt.hpp"
-#include "custom/core/RV64SV39_MMU.h"
+#include "builtin/core/RV64SV39_MMU.h"
 
 #include "impl/MMIOBus_Impl.hpp"
 #include "builtin/dev/MMIOMem_Impl.hpp"
 #include "impl/MMIODev_CEmuAdapter.hpp"
 //#include "impl/Processor_CEmuAdapter.hpp"
 #include "impl/MMIOIntCtrl_CEmuAdapter.h"
-#include "interface/CoreIntCtrlBridge.h"
+//#include "interface/CoreIntCtrlBridge.h"
 #include "interface/IntCtrl.h"
-#include "custom/core/RV64Core.h"
+#include "builtin/core/RV64Core.h"
 
 // TODO: Optimize branch with `likely`
 

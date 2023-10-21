@@ -1,5 +1,5 @@
-#include "builtin/core/RV64Core.h"
-#include "builtin/core/RV64SV39_MMU.h"
+#include "RV64Core.h"
+#include "RV64SV39_MMU.h"
 
 
 void RV64Core::preExec() {

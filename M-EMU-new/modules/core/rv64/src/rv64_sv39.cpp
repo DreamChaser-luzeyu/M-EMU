@@ -1,4 +1,4 @@
-#include "builtin/core/RV64SV39_MMU.h"
+#include "RV64SV39_MMU.h"
 
 VAddr_RW_Feedback_e RV64SV39_MMU::VAddr_ReadBuffer_MMU_API(uint64_t begin_addr, uint64_t size, uint8_t *buffer) {
     const SATP_Reg_t* satp_reg = (SATP_Reg_t*)&satp;
