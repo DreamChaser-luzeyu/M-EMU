@@ -7,6 +7,8 @@
 #include "interface/MMU.h"
 #include "interface/Platform.h"
 
+#include "obj_factory.hpp"
+
 MMIOBus_I* Bus_GetInstance(const InstanceDesc_t& desc);
 
 ProcessorCore_I *Core_GetInstance(const InstanceDesc_t &desc, MMIOBus_I *bus, uint64_t hart_id);

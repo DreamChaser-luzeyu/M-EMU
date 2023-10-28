@@ -3,14 +3,6 @@
 #include "sdk/test/test.h"
 #include "misc/obj_factory.h"
 
-TEST_CASE(test_case_1, "CASE 1 !") {
-    std::cout << "TEST CASE 1 RUNNING" << std::endl;
-}
-
-TEST_CASE(test_case_2, "CASE 2 !") {
-    std::cout << "TEST CASE 2 RUNNING" << std::endl;
-}
-
 TEST_CASE(test_obj_factory_match, "Object Factory Desc Match Test") {
     bool is_desc_match(const InstanceDesc_t*, const InstanceDesc_t*);
     InstanceDesc_t desc_1 = { .desc_str = "abc" };
@@ -35,24 +27,31 @@ TEST_CASE(test_obj_factory_dev, "Object Factory Get Dev Test") {
 TEST_CASE(test_obj_factory_bus, "Object Factory Get Bus Test") {
     vector<string> get_lib_names(const string& path);
     get_lib_names("./lib/bus");
-    MMIOBus_I* bus = Bus_GetInstance({.desc_str = "mmio_bus"});
+    MMIOBus_I* bus = Bus_GetInstance({ .desc_str = "mmio_bus" });
     assert(bus);
 }
 
 TEST_CASE(test_obj_factory_core, "Object Factory Get Core Test") {
     vector<string> get_lib_names(const string& path);
     get_lib_names("./lib/core");
-    ProcessorCore_I* core_0 = Core_GetInstance({.desc_str = "rv64core_simple"}, nullptr, 0);
+    ProcessorCore_I* core_0 = Core_GetInstance({ .desc_str = "rv64core_simple" }, nullptr, 0);
     assert(core_0);
 }
 
 TEST_CASE(test_obj_factory_intc, "Object Factory Get Intc Test") {
     vector<string> get_lib_names(const string& path);
     get_lib_names("./lib/intc");
-    IntCtrl_I* clint = IntCtrl_GetInstance({.desc_str = "rv_clint"});
+    IntCtrl_I* clint = IntCtrl_GetInstance({ .desc_str = "rv_clint" });
     assert(clint);
-    IntCtrl_I* plic = IntCtrl_GetInstance({.desc_str = "rv_plic"});
+    IntCtrl_I* plic = IntCtrl_GetInstance({ .desc_str = "rv_plic" });
     assert(plic);
+}
+
+TEST_CASE(test_obj_factory_platform, "Object Factory Get Platform Test") {
+    vector<string> get_lib_names(const string& path);
+    get_lib_names("./lib/platform");
+    Platform_I* platform = Platform_GetInstance({ .desc_str = "default_platform" });
+    assert(platform);
 }
 
 void test() {

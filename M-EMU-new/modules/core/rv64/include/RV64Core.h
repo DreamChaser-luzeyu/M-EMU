@@ -8,6 +8,8 @@
 #include "RV64SV39_MMU.h"
 #include "rv64_int_status.h"
 
+
+
 #include <iostream>
 #include <fstream>
 
@@ -51,7 +53,7 @@ private:
     CSR_CounterEN_t         csrSCounterEN;             // scounteren
     uint64_t                csrSscratch;               // sscratch
     // --- Shared CSRs
-    uint64_t                mcycle;
+//    uint64_t                mcycle;
     uint64_t                minstret;
     // The sstatus register is a subset of the mstatus register.
     // In a straightforward implementation, reading or writing any field in sstatus is equivalent to
@@ -75,10 +77,10 @@ private:
     // ----- Interface implementations
 public:
     FuncReturnFeedback_e DumpRegister_CoreAPI(std::vector<RegisterItem_t>& regs) override;
-    FuncReturnFeedback_e Step_CoreAPI() override;
+    ALWAYS_INLINE inline FuncReturnFeedback_e Step_CoreAPI() override;
     FuncReturnFeedback_e DumpProgramCounter_CoreAPI(RegisterItem_t& reg) override;
-    FuncReturnFeedback_e WriteProgramCounter_CoreAPI(RegItemVal_t reg_val) override;
-    FuncReturnFeedback_e setGPRByIndex_CoreAPI(uint8_t gpr_index, int64_t val) override;
+    ALWAYS_INLINE inline FuncReturnFeedback_e WriteProgramCounter_CoreAPI(RegItemVal_t reg_val) override;
+    ALWAYS_INLINE inline FuncReturnFeedback_e setGPRByIndex_CoreAPI(uint8_t gpr_index, int64_t val) override;
 
 
     // ----- Constructors & Destructors
@@ -95,7 +97,7 @@ public:
 
     // ----- Member functions
 private:
-    void preExec();
+    ALWAYS_INLINE inline void preExec();
 
     /**
      * Do calculations
@@ -105,24 +107,16 @@ private:
      * @param op_32 If to cut off result to 32 bits
      * @return Calculation result
      */
-    int64_t alu_exec(int64_t a, int64_t b, ALU_Op_enum op, bool op_32 = false);
+    ALWAYS_INLINE inline int64_t alu_exec(int64_t a, int64_t b, ALU_Op_enum op, bool op_32 = false);
 
-    void raiseTrap(CSReg_Cause_t cause, uint64_t tval = 0);
+    ALWAYS_INLINE inline void raiseTrap(CSReg_Cause_t cause, uint64_t tval = 0);
 
-    void setGPR(uint8_t GPR_index, int64_t value) {
+    ALWAYS_INLINE inline void setGPR(uint8_t GPR_index, int64_t value) {
         assert(GPR_index >= 0 && GPR_index < 32);
         if (GPR_index) GPR[GPR_index] = value;
-
-
-
-//        extern uint64_t count;
-//        extern std::ofstream dump_file;
-//        if(GPR_index == 18) {
-////            dump_file << "[R18] count:" << count << " val:" << value << std::endl;
-//        }
     }
 
-    bool memRead(uint64_t start_addr, uint64_t size, uint8_t *buffer) {
+    ALWAYS_INLINE inline bool memRead(uint64_t start_addr, uint64_t size, uint8_t *buffer) {
         if (start_addr % size != 0) {
             CSReg_Cause_t cause;
             cause.cause = exec_load_misalign;
@@ -143,7 +137,7 @@ private:
             return false;
         }
     }
-    bool memWrite(uint64_t start_addr, uint64_t size, const uint8_t *buffer) {
+    ALWAYS_INLINE inline bool memWrite(uint64_t start_addr, uint64_t size, const uint8_t *buffer) {
         if (start_addr % size != 0) {
             raiseTrap({ .cause = exec_store_misalign, .interrupt = 0 },start_addr);
             return false;
@@ -162,19 +156,22 @@ private:
         }
     }
 
-    void ecall();
-    void ebreak();
-    bool mret();
-    bool sret();
-    bool sfence_vma(uint64_t vaddr, uint64_t asid);
+    ALWAYS_INLINE inline void ecall();
+    ALWAYS_INLINE inline void ebreak();
+    ALWAYS_INLINE inline bool mret();
+    ALWAYS_INLINE inline bool sret();
+    ALWAYS_INLINE inline bool sfence_vma(uint64_t vaddr, uint64_t asid);
 
     void reset();
-    bool csr_read(RV_CSR_Addr_enum csr_index, uint64_t &csr_result);
-    bool csr_write(RV_CSR_Addr_enum csr_index, uint64_t csr_data);
-    bool csr_setbit(RV_CSR_Addr_enum csr_index, uint64_t csr_mask);
-    bool csr_clearbit(RV_CSR_Addr_enum csr_index, uint64_t csr_mask);
-    bool csr_op_permission_check(uint16_t csr_index, bool write);
+    ALWAYS_INLINE inline bool csr_read(RV_CSR_Addr_enum csr_index, uint64_t &csr_result);
+    ALWAYS_INLINE inline bool csr_write(RV_CSR_Addr_enum csr_index, uint64_t csr_data);
+    ALWAYS_INLINE inline bool csr_setbit(RV_CSR_Addr_enum csr_index, uint64_t csr_mask);
+    ALWAYS_INLINE inline bool csr_clearbit(RV_CSR_Addr_enum csr_index, uint64_t csr_mask);
+    ALWAYS_INLINE inline bool csr_op_permission_check(uint16_t csr_index, bool write);
 };
 
-
+// We have to include those implements here because those functions are marked `inline`
+#include "rv64_common.hpp"
+#include "rv64_exec.hpp"
+#include "rv64_privilege.hpp"
 

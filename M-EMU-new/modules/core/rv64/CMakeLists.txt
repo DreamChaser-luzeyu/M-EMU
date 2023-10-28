@@ -1,6 +1,6 @@
 message("RV64Core-Simple Built-in at ${PROJECT_SOURCE_DIR}")
 
-include_directories(include)
+include_directories(include inline_impl)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib/core)
 

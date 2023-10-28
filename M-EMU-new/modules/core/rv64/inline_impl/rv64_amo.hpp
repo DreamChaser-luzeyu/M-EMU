@@ -1,11 +1,13 @@
+#pragma once
+
 #include <algorithm>
 #include "RV64SV39_MMU.h"
 
-RV64_ExecFeedbackCode_e RV64SV39_MMU::vaddrAtomicMemOperation(uint64_t start_addr,
-                                                              uint64_t size,
-                                                              AMO_Funct_enum op,
-                                                              int64_t src,
-                                                              int64_t &dst) {
+ALWAYS_INLINE inline RV64_ExecFeedbackCode_e RV64SV39_MMU::vaddrAtomicMemOperation(uint64_t start_addr,
+                                                                                   uint64_t size,
+                                                                                   AMO_Funct_enum op,
+                                                                                   int64_t src,
+                                                                                   int64_t &dst) {
     assert(size == 4 || size == 8);
     const SATP_Reg_t* satp_reg = (SATP_Reg_t*)&satp;
     const CSReg_MStatus_t* mstatus = (CSReg_MStatus_t*)&status;
@@ -47,7 +49,7 @@ RV64_ExecFeedbackCode_e RV64SV39_MMU::vaddrAtomicMemOperation(uint64_t start_add
     return exec_ok;
 }
 
-RV64_ExecFeedbackCode_e RV64SV39_MMU::vaddrLoadReserved(uint64_t begin_addr, uint64_t size, uint8_t *buffer) {
+ALWAYS_INLINE inline RV64_ExecFeedbackCode_e RV64SV39_MMU::vaddrLoadReserved(uint64_t begin_addr, uint64_t size, uint8_t *buffer) {
     const SATP_Reg_t* satp_reg = (SATP_Reg_t*)&satp;
     const CSReg_MStatus_t* mstatus = (CSReg_MStatus_t*)&status;
     // --- No need to do page-based vaddr converting
@@ -91,10 +93,10 @@ RV64_ExecFeedbackCode_e RV64SV39_MMU::vaddrLoadReserved(uint64_t begin_addr, uin
     return exec_ok;
 }
 
-RV64_ExecFeedbackCode_e RV64SV39_MMU::vaddrStoreConditional(uint64_t begin_addr,
-                                                            uint64_t size,
-                                                            const uint8_t *buffer,
-                                                            bool &sc_fail) {
+ALWAYS_INLINE inline RV64_ExecFeedbackCode_e RV64SV39_MMU::vaddrStoreConditional(uint64_t begin_addr,
+                                                                                 uint64_t size,
+                                                                                 const uint8_t *buffer,
+                                                                                 bool &sc_fail) {
 
     const SATP_Reg_t* satp_reg = (SATP_Reg_t*)&satp;
     const CSReg_MStatus_t* mstatus = (CSReg_MStatus_t*)&status;
@@ -145,20 +147,18 @@ RV64_ExecFeedbackCode_e RV64SV39_MMU::vaddrStoreConditional(uint64_t begin_addr,
     return exec_ok;
 }
 
-bool RV64SV39_MMU::pa_amo_op(uint64_t pa, uint64_t size, AMO_Funct_enum op, int64_t src, int64_t &dst) {
+ALWAYS_INLINE inline bool RV64SV39_MMU::pa_amo_op(uint64_t pa, uint64_t size, AMO_Funct_enum op, int64_t src, int64_t &dst) {
     int64_t res;
-//    bool read_ok = true;
     if (size == 4) {
         int32_t res32;
-        /*read_ok &=*/FuncReturnFeedback_e feedback = sysBus->PAddr_ReadBuffer_MMIOBus_API(pa,size,(uint8_t*)&res32);
-        if(feedback != MEMU_OK) { return false; }
+        FuncReturnFeedback_e feedback = sysBus->PAddr_ReadBuffer_MMIOBus_API(pa,size,(uint8_t*)&res32);
+        if(unlikely(feedback != MEMU_OK)) { return false; }
         res = res32;
     }
     else {
-        /*read_ok &=*/FuncReturnFeedback_e feedback = sysBus->PAddr_ReadBuffer_MMIOBus_API(pa,size,(uint8_t*)&res);
-        if(feedback != MEMU_OK) { return false; }
+        FuncReturnFeedback_e feedback = sysBus->PAddr_ReadBuffer_MMIOBus_API(pa,size,(uint8_t*)&res);
+        if(unlikely(feedback != MEMU_OK)) { return false; }
     }
-//    if (!read_ok) return false;
     int64_t to_write;
     switch (op) {
         case AMOSWAP:

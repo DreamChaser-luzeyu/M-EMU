@@ -10,7 +10,9 @@ extern "C" {
 
 // NOTE: Do not define InstanceDesc_GV as constant.
 InstanceDesc_t InstanceDesc_GV = {
-        .desc_str = "rv_plic"
+        .desc_str = "rv_plic",
+        .env_help_list = nullptr,
+        .env_help_list_len = 0,
 };
 
 IntCtrl_I *GetInstance_API() {

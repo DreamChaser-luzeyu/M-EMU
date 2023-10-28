@@ -1,10 +1,6 @@
-#include "builtin/core/RV64Core.h"
-#include "builtin/core/rv64_inst.h"
-#include <fstream>
+#pragma once
 
-uint64_t count = 0;
-std::ofstream dump_file("/media/luzeyu/Files/temp/BAD.txt");
-FuncReturnFeedback_e RV64Core::Step_CoreAPI() {
+ALWAYS_INLINE inline FuncReturnFeedback_e RV64Core::Step_CoreAPI() {
 
     bool is_new_pc_set = false;
     bool is_compressed_inst = false;
@@ -20,8 +16,7 @@ FuncReturnFeedback_e RV64Core::Step_CoreAPI() {
         goto exception;
     }
     feedback = sv39MMU->VAddr_InstFetch_MMU_API(currentProgramCounter, 4, &inst);
-//    dump_file << std::hex << "CNT" << count << "  PC " << currentProgramCounter << "  INST " << inst.val << std::endl;
-    count ++;
+//    count ++;
     if(feedback != INST_ACCESS_OK) {
 //        printf("[DEBUG] Current PC: %016lx\n", currentProgramCounter);
         CSReg_Cause_t cause;
@@ -192,7 +187,7 @@ FuncReturnFeedback_e RV64Core::Step_CoreAPI() {
                 }
                 break;
             }
-            // S-Type Instructions
+                // S-Type Instructions
             case OPCODE_STORE: {
                 uint64_t mem_addr = GPR[inst.s_type.rs1] + ( (inst.s_type.imm_11_5 << 5) | (inst.s_type.imm_4_0));
                 switch (inst.i_type.funct3) {
@@ -221,7 +216,7 @@ FuncReturnFeedback_e RV64Core::Step_CoreAPI() {
                 }
                 break;
             }
-            // I-Type Instructions
+                // I-Type Instructions
             case OPCODE_OPIMM: {
                 int64_t imm = inst.i_type.imm12;
                 Funct6_Op_enum fun6 = (Funct6_Op_enum)((inst.r_type.funct7) >> 1);
@@ -267,7 +262,7 @@ FuncReturnFeedback_e RV64Core::Step_CoreAPI() {
                 }
                 break;
             }
-            // I-Type Instructions, would be cut to 32 bits
+                // I-Type Instructions, would be cut to 32 bits
             case OPCODE_OPIMM32: {
                 int64_t imm = inst.i_type.imm12;
                 Funct7_Op_enum fun7 = (Funct7_Op_enum)((inst.r_type.funct7));
@@ -297,7 +292,7 @@ FuncReturnFeedback_e RV64Core::Step_CoreAPI() {
                 }
                 break;
             }
-            // R-Type Instructions
+                // R-Type Instructions
             case OPCODE_OP: {
                 ALU_Op_enum op = ALU_NOP;
                 switch (inst.r_type.funct7) {
@@ -385,7 +380,7 @@ FuncReturnFeedback_e RV64Core::Step_CoreAPI() {
                 }
                 break;
             }
-            // R-Type Instructions, would be cut to 32 bits
+                // R-Type Instructions, would be cut to 32 bits
             case OPCODE_OP32: {
                 ALU_Op_enum op = ALU_NOP;
                 switch (inst.r_type.funct7) {
@@ -449,7 +444,7 @@ FuncReturnFeedback_e RV64Core::Step_CoreAPI() {
                 }
                 break;
             }
-            // R-Type Instructions, Atomic Memory Operations
+                // R-Type Instructions, Atomic Memory Operations
             case OPCODE_AMO: {
                 uint8_t funct5 = (inst.r_type.funct7) >> 2;
                 if (inst.r_type.funct3 != 0b010 && inst.r_type.funct3 != 0b011) {
@@ -936,7 +931,7 @@ FuncReturnFeedback_e RV64Core::Step_CoreAPI() {
         }
     }
 
-exception:
+    exception:
     if(is_instr_illegal) {
 //        printf("[DEBUG] Current PC: %016lx\n", currentProgramCounter);
         raiseTrap({ .cause = exec_illegal_instr, .interrupt = 0 }, inst.val);
@@ -947,7 +942,7 @@ exception:
     else if(!is_new_pc_set){
         currentProgramCounter = currentProgramCounter + (is_compressed_inst ? 2 : 4);
     }
-post_exec:
+    post_exec:
     if(!needTrap) { minstret++; }
     needTrap = false;
     CSReg_MStatus_t* mstatus = (CSReg_MStatus_t*)&status;
@@ -959,3 +954,4 @@ post_exec:
     assert(mstatus->blank4 == 0);
     return MEMU_OK;
 }
+

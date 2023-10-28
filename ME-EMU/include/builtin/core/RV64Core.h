@@ -32,7 +32,7 @@ private:
     int64_t GPR[32];                                   // General purpose registers
     // ----- CSRs
     // --- M_MODE CSRs
-    uint64_t                csrMCycleNum;
+//    uint64_t                csrMCycleNum;
     // Used as a mask, indicating which traps to be routed to S_MODE
     uint64_t                csrMIntDelegation;         // mideleg, Machine-level Interrupt Delegation Register
     uint64_t                csrMExceptionDelegation;   // medeleg, Machine-level Exception Delegation Register
@@ -83,7 +83,7 @@ public:
 
     // ----- Constructors & Destructors
     RV64Core(MMIOBus_I* sys_bus, uint16_t hart_id) :
-        rvHartID(hart_id), csrMCycleNum(0), needTrap(false) {
+        rvHartID(hart_id), mcycle(0), needTrap(false) {
         this->intStatus = new IntStatus_t;
         intStatus->mtip = false;
         intStatus->msip = false;

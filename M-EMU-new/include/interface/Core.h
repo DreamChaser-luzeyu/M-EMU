@@ -3,6 +3,7 @@
 #include <ostream>
 #include <vector>
 
+#include "sdk/symbol_attr.h"
 #include "misc/status_enum.h"
 
 typedef union {
@@ -49,13 +50,13 @@ public:
     /**
      * @brief Do fetch-and-execute an instruct
      */
-    virtual FuncReturnFeedback_e Step_CoreAPI() = 0;
+    virtual ALWAYS_INLINE inline FuncReturnFeedback_e Step_CoreAPI() = 0;
 
     virtual FuncReturnFeedback_e DumpProgramCounter_CoreAPI(RegisterItem_t& reg) = 0;
 
-    virtual FuncReturnFeedback_e WriteProgramCounter_CoreAPI(RegItemVal_t reg_val) = 0;
+    virtual ALWAYS_INLINE inline FuncReturnFeedback_e WriteProgramCounter_CoreAPI(RegItemVal_t reg_val) = 0;
 
-    virtual FuncReturnFeedback_e setGPRByIndex_CoreAPI(uint8_t gpr_index, int64_t val) = 0;
+    virtual ALWAYS_INLINE inline FuncReturnFeedback_e setGPRByIndex_CoreAPI(uint8_t gpr_index, int64_t val) = 0;
 
     // ----- Member functions
 public:

@@ -1,11 +1,9 @@
-#include "builtin/core/RV64Core.h"
-#include "builtin/core/RV64SV39_MMU.h"
+#pragma once
 
-
-void RV64Core::preExec() {
+ALWAYS_INLINE void RV64Core::preExec() {
     // TODO: fill the raise trap
     // ----- Update CSRs
-    this->mcycle++;
+    this->csrMCycleNum++;
     csrIntPending.m_e_ip = this->intStatus->meip;
     csrIntPending.m_s_ip = this->intStatus->msip;
     csrIntPending.m_t_ip = this->intStatus->mtip;
@@ -15,7 +13,7 @@ void RV64Core::preExec() {
     this->currentPrivMode = this->nextPrivMode;
     // ----- Check interrupt bits
     const uint64_t int_bits = (csrIntPending.val) & csrIntEnable;
-    if(bits_to_int_type(int_bits) == int_no_int) { return; }  // Certainly no need to trap, so return directly
+    if(likely(bits_to_int_type(int_bits) == int_no_int)) { return; }  // Certainly no need to trap, so return directly
     // ----- Raise trap
     // 1-- For M_MODE
     if(currentPrivMode == M_MODE) {
@@ -36,7 +34,7 @@ void RV64Core::preExec() {
             return;
         }
     }
-    // 2-- For other mode
+        // 2-- For other mode
     else {
         IntType_e int_type = bits_to_int_type(int_bits);
         CSReg_MStatus_t* csrMachineStatus = (CSReg_MStatus_t *)(&status);
@@ -98,7 +96,7 @@ void RV64Core::preExec() {
     assert(0);  // Should never reach here
 }
 
-bool RV64Core::csr_read(RV_CSR_Addr_enum csr_index, uint64_t &csr_result) {
+ALWAYS_INLINE inline bool RV64Core::csr_read(RV_CSR_Addr_enum csr_index, uint64_t &csr_result) {
     switch (csr_index) {
         case csr_mvendorid:
             csr_result = 0;
@@ -152,7 +150,7 @@ bool RV64Core::csr_read(RV_CSR_Addr_enum csr_index, uint64_t &csr_result) {
             csr_result = csrIntPending.val;
             break;
         case csr_mcycle:
-            csr_result = mcycle;
+            csr_result = csrMCycleNum;
             break;
         case csr_minstret:
             csr_result = minstret;
@@ -210,7 +208,7 @@ bool RV64Core::csr_read(RV_CSR_Addr_enum csr_index, uint64_t &csr_result) {
             CSR_CounterEN_t *mcen = (CSR_CounterEN_t*)&csrMCounterEN;
             CSR_CounterEN_t *scen = (CSR_CounterEN_t*)&csrSCounterEN;
             if (currentPrivMode <= S_MODE && (!mcen->cycle || !scen->cycle)) return false;
-            csr_result = mcycle;
+            csr_result = csrMCycleNum;
             break;
         }
         case csr_tselect:
@@ -225,7 +223,7 @@ bool RV64Core::csr_read(RV_CSR_Addr_enum csr_index, uint64_t &csr_result) {
     return true;
 }
 
-bool RV64Core::csr_write(RV_CSR_Addr_enum csr_index, uint64_t csr_data) {
+ALWAYS_INLINE inline bool RV64Core::csr_write(RV_CSR_Addr_enum csr_index, uint64_t csr_data) {
     switch (csr_index) {
         case csr_mstatus: {
             CSReg_MStatus_t *nstatus = (CSReg_MStatus_t*)&csr_data;
@@ -284,7 +282,7 @@ bool RV64Core::csr_write(RV_CSR_Addr_enum csr_index, uint64_t csr_data) {
             csrIntPending.val = csr_data & M_MODE_INT_MASK;
             break;
         case csr_mcycle:
-            mcycle = csr_data;
+            csrMCycleNum = csr_data;
             break;
         case csr_sstatus: {
             CSReg_SStatus_t* nstatus = (CSReg_SStatus_t*)&csr_data;
@@ -326,7 +324,7 @@ bool RV64Core::csr_write(RV_CSR_Addr_enum csr_index, uint64_t csr_data) {
             break;
         case csr_satp: {
             const CSReg_MStatus_t* mstatus = (CSReg_MStatus_t*)&status;
-            if (currentPrivMode == S_MODE && mstatus->tvm) return false;
+            if (unlikely(currentPrivMode == S_MODE && mstatus->tvm)) return false;
             SATP_Reg_t *satp_reg = (SATP_Reg_t*)&csr_data;
             if (satp_reg->mode !=0 && satp_reg->mode != 8) satp_reg->mode = 0;
             satp.val = csr_data;
@@ -342,31 +340,31 @@ bool RV64Core::csr_write(RV_CSR_Addr_enum csr_index, uint64_t csr_data) {
     return true;
 }
 
-bool RV64Core::csr_setbit(RV_CSR_Addr_enum csr_index, uint64_t csr_mask) {
+ALWAYS_INLINE inline bool RV64Core::csr_setbit(RV_CSR_Addr_enum csr_index, uint64_t csr_mask) {
     uint64_t tmp;
     bool ret = csr_read(csr_index,tmp);
-    if (!ret) return false;
+    if (unlikely(!ret)) return false;
     tmp |= csr_mask;
     ret &= csr_write(csr_index,tmp);
     return ret;
 }
 
-bool RV64Core::csr_clearbit(RV_CSR_Addr_enum csr_index, uint64_t csr_mask) {
+ALWAYS_INLINE inline bool RV64Core::csr_clearbit(RV_CSR_Addr_enum csr_index, uint64_t csr_mask) {
     uint64_t tmp;
     bool ret = csr_read(csr_index,tmp);
-    if (!ret) return false;
+    if (unlikely(!ret)) return false;
     tmp &= ~csr_mask;
     ret &= csr_write(csr_index,tmp);
     return ret;
 }
 
-bool RV64Core::csr_op_permission_check(uint16_t csr_index, bool write) {
-    if ( ((csr_index >> 8) & 3) > currentPrivMode) return false;
-    if ( (((csr_index >> 10) & 3) == 3) && write) return false;
+ALWAYS_INLINE inline bool RV64Core::csr_op_permission_check(uint16_t csr_index, bool write) {
+    if (unlikely(((csr_index >> 8) & 3) > currentPrivMode)) return false;
+    if (unlikely((((csr_index >> 10) & 3) == 3) && write)) return false;
     return true;
 }
 
-void RV64Core::raiseTrap(CSReg_Cause_t cause, uint64_t tval)
+ALWAYS_INLINE inline void RV64Core::raiseTrap(CSReg_Cause_t cause, uint64_t tval)
 {
     assert(!this->needTrap);
     assert(cause.cause != exec_ok);
@@ -374,7 +372,7 @@ void RV64Core::raiseTrap(CSReg_Cause_t cause, uint64_t tval)
     uint8_t trap_dest = 0;  // 0 - trap to M_MODE   1 - trap to S_MODE
 
     // --- Decide which mode to trap to
-    if(currentPrivMode != M_MODE) {
+    if(likely(currentPrivMode != M_MODE)) {
         if(cause.interrupt) {
             // Trap caused by interrupt
             if(csrMIntDelegation & (1 << cause.cause)) {
@@ -425,17 +423,17 @@ void RV64Core::raiseTrap(CSReg_Cause_t cause, uint64_t tval)
     if(cause.cause == exec_instr_pgfault && tval == trapProgramCounter) { assert(false); }
 }
 
-void RV64Core::ecall() {
+ALWAYS_INLINE inline void RV64Core::ecall() {
 //    assert((currentPrivMode | 0b100) == (currentPrivMode + 8));
 //    raiseTrap({ .cause = (uint64_t)(currentPrivMode | 0b100), .interrupt = 0 });
     raiseTrap({ .cause = (uint64_t)(currentPrivMode + 8), .interrupt = 0 });
 }
 
-void RV64Core::ebreak() {
+ALWAYS_INLINE inline void RV64Core::ebreak() {
     raiseTrap({ .cause = exec_breakpoint, .interrupt = 0 });
 }
 
-bool RV64Core::mret() {
+ALWAYS_INLINE inline bool RV64Core::mret() {
     if(currentPrivMode != M_MODE) { return false; }
     CSReg_MStatus_t* csrMachineStatus = (CSReg_MStatus_t *)(&status);
     csrMachineStatus->mie = csrMachineStatus->mpie;
@@ -448,11 +446,11 @@ bool RV64Core::mret() {
     return true;
 }
 
-bool RV64Core::sret() {
-    if(currentPrivMode < S_MODE) { return false; }
+ALWAYS_INLINE inline bool RV64Core::sret() {
+    if(unlikely(currentPrivMode < S_MODE)) { return false; }
     CSReg_MStatus_t* csrMachineStatus = (CSReg_MStatus_t *)(&status);
     CSReg_SStatus_t* csrSupervisorStatus = (CSReg_SStatus_t *)(&status);
-    if(csrMachineStatus->tsr) { return false; }
+    if(unlikely(csrMachineStatus->tsr)) { return false; }
     csrSupervisorStatus->sie = csrSupervisorStatus->spie;
     nextPrivMode = (PrivMode_e)(csrSupervisorStatus->spp);
     csrSupervisorStatus->spie = 1;
@@ -463,9 +461,9 @@ bool RV64Core::sret() {
     return true;
 }
 
-bool RV64Core::sfence_vma(uint64_t vaddr, uint64_t asid) {
+ALWAYS_INLINE inline bool RV64Core::sfence_vma(uint64_t vaddr, uint64_t asid) {
     const CSReg_MStatus_t *mstatus = (CSReg_MStatus_t *)&status;
-    if (currentPrivMode < S_MODE || (currentPrivMode == S_MODE && mstatus->tvm)) return false;
+    if (unlikely(currentPrivMode < S_MODE || (currentPrivMode == S_MODE && mstatus->tvm))) return false;
     sv39MMU->SV39_FlushTLB_sfence_vma(vaddr,asid);
     return true;
 }

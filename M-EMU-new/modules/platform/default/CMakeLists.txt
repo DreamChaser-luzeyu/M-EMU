@@ -2,7 +2,7 @@ message("Default platform at ${PROJECT_SOURCE_DIR}")
 
 include_directories(include)
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib/core)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib/platform)
 
 aux_source_directory(src DEFAULT_PLATFORM_SRCS)
 

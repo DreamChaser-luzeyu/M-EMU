@@ -6,6 +6,8 @@
 #include "interface/Platform.h"
 #include "misc/obj_factory.h"
 
+
+
 class DefaultPlatform : public Platform_I {
     // ----- Fields
     // --- Bus
@@ -20,10 +22,32 @@ class DefaultPlatform : public Platform_I {
     MMIODev_I* uartlite = nullptr;
     MMIODev_I* ram = nullptr;
 
-    // ----- Interface implementation
+    // ----- Interface implementation & polymorphic override
 public:
-    FuncReturnFeedback_e Run_Platform_API() override {
 
+    FuncReturnFeedback_e Init_Platform_API() override {
+        FuncReturnFeedback_e feedback = MEMU_OK;
+        feedback = uartlite->Init_MMIODev_API();
+        if(feedback != MEMU_OK) return feedback;
+        return MEMU_OK;
+    }
+
+    FuncReturnFeedback_e Run_Platform_API() override {
+        while(true) {
+            // --- Update intc
+            rvCLInt->UpdateIntState_IntCtrl_API();
+            rvPLIC->UpdateIntState_IntCtrl_API();
+            // --- Do exec
+            core0->Step_CoreAPI();
+            core1->Step_CoreAPI();
+            // --- Dev action
+            static int counter = 0;
+            counter ++;
+            if(counter == 100) {
+                counter = 0;
+                uartlite->Step_MMIODev_API();
+            }
+        }
         return MEMU_OK;
     }
 
@@ -48,7 +72,7 @@ public:
         core1->WriteProgramCounter_CoreAPI({ .u64_val = 0x80000000 });
         core1->setGPRByIndex_CoreAPI(10, 1);
         // --- Init image
-        const char* init_file = "/media/luzeyu/Files/Study/verilator/ME-EMU/firmware/fw_payload.bin";
+        const char* init_file = "/home/luzeyu/temp/memu_linux/opensbi-1.3.1/build/platform/generic/firmware/fw_payload.bin";
         std::ifstream file(init_file,std::ios::in | std::ios::binary);
         uint64_t file_size = std::filesystem::file_size(init_file);
         uint8_t* bin_data = new uint8_t[file_size];
@@ -58,7 +82,10 @@ public:
         sysBus->RegisterMMIODev_MMIOBus_API(ram, 0x80000000);
         sysBus->RegisterMMIODev_MMIOBus_API(uartlite, 0x60100000);
         // --- Connect peripherals&cores to intcs
-        // TODO: How to connect core to intcs?
+        rvCLInt->AttachCoreIntStatus(core0->getIntStatusPtr_Core(), 0);
+        rvCLInt->AttachCoreIntStatus(core1->getIntStatusPtr_Core(), 1);
+        rvPLIC->AttachCoreIntStatus(core0->getIntStatusPtr_Core(), 0);
+        rvPLIC->AttachCoreIntStatus(core1->getIntStatusPtr_Core(), 1);
         rvPLIC->RegisterDev_IntCtrl_API(1, uartlite);
         // --- Register intcs to bus
         sysBus->RegisterMMIODev_MMIOBus_API(rvCLInt, 0x2000000);

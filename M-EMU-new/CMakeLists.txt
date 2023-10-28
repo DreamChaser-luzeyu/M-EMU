@@ -7,7 +7,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 add_subdirectory(modules)
 
-link_directories(${PROJECT_SOURCE_DIR}/lib)
+#link_directories(${PROJECT_SOURCE_DIR}/lib)
 
 aux_source_directory(src FRAMEWORK_SRCS)
 

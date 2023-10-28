@@ -47,7 +47,7 @@ int main() {
     MMIODev_I* sys_ram = new MEmu_MMIO_Mem(1024 * 1024 * 4096l);
     sysBus.RegisterMMIODev_MMIOBus_API(sys_ram, 0x80000000);
     // --- Load binary file to memory
-    const char* init_file = "/media/luzeyu/Files/Study/verilator/ME-EMU/firmware/fw_payload.bin";
+    const char* init_file = "/home/luzeyu/temp/memu_linux/opensbi-1.3.1/build/platform/generic/firmware/fw_payload.bin";
     std::ifstream file(init_file,std::ios::in | std::ios::binary);
     uint64_t file_size = std::filesystem::file_size(init_file);
     uint8_t* bin_data = new uint8_t[file_size];
@@ -86,14 +86,14 @@ int main() {
     rv_plic->RegisterDev_IntCtrl_API(1, rv_uart);
 
     // --- Emulate
-    for(int i=0; i<11647731; i++) {
+    for(int i=0; i<11; i++) {
         // --- Update intc
         rv_cli->UpdateIntState_IntCtrl_API();
         rv_plic->UpdateIntState_IntCtrl_API();
 
         // --- Core do exec
         core_0->Step_CoreAPI();
-        core_1->Step_CoreAPI();
+//        core_1->Step_CoreAPI();
 
         uartlite* uart = (uartlite*)(((CemuDevAdapter*)(rv_uart))->getCEMUDev());
         while (uart->exist_tx()) {
@@ -110,7 +110,7 @@ int main() {
 
         // --- Core do exec
         core_0->Step_CoreAPI();
-        core_1->Step_CoreAPI();
+//        core_1->Step_CoreAPI();
 
         uartlite* uart = (uartlite*)(((CemuDevAdapter*)(rv_uart))->getCEMUDev());
         while (uart->exist_tx()) {

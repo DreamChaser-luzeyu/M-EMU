@@ -16,12 +16,16 @@ protected:
     uint64_t devBaseAddr;
     uint64_t addrRegionSize;
 
-    // ----- Interfaces
+    // ----- Interfaces & polymorphic functions
 public:
     // The `begin_addr` and `begin_addr + size` should be in region [0, addrRegionSize]
     virtual FuncReturnFeedback_e ReadBuffer_MMIODev_API (uint64_t begin_addr, uint64_t size, uint8_t* buffer) = 0;
 
     virtual FuncReturnFeedback_e WriteBuffer_MMIODev_API(uint64_t begin_addr, uint64_t size, const uint8_t* buffer) = 0;
+
+    virtual FuncReturnFeedback_e Init_MMIODev_API() { return MEMU_OK; }
+
+    virtual FuncReturnFeedback_e Step_MMIODev_API() { return MEMU_OK; }
 
     virtual bool GetIrqStatus() { return false; }
 

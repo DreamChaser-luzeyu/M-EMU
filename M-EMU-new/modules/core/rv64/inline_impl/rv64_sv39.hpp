@@ -1,11 +1,13 @@
+#pragma once
+
 #include "RV64SV39_MMU.h"
 
-VAddr_RW_Feedback_e RV64SV39_MMU::VAddr_ReadBuffer_MMU_API(uint64_t begin_addr, uint64_t size, uint8_t *buffer) {
+ALWAYS_INLINE inline VAddr_RW_Feedback_e RV64SV39_MMU::VAddr_ReadBuffer_MMU_API(uint64_t begin_addr, uint64_t size, uint8_t *buffer) {
     const SATP_Reg_t* satp_reg = (SATP_Reg_t*)&satp;
     const CSReg_MStatus_t* mstatus = (CSReg_MStatus_t*)&status;
     // --- No need to do page-based vaddr converting
     if( (currentPrivMode == M_MODE && (!mstatus->mprv || mstatus->mpp == M_MODE))
-     || (satp_reg->mode == 0) ) {
+        || (satp_reg->mode == 0) ) {
         FuncReturnFeedback_e pread_fb = sysBus->PAddr_ReadBuffer_MMIOBus_API(begin_addr, size, buffer);
         if(pread_fb != MEMU_OK) { return VADDR_ACCESS_FAULT; }
         return VADDR_ACCESS_OK;
@@ -38,7 +40,7 @@ VAddr_RW_Feedback_e RV64SV39_MMU::VAddr_ReadBuffer_MMU_API(uint64_t begin_addr, 
     return VADDR_ACCESS_OK;
 }
 
-VAddr_RW_Feedback_e RV64SV39_MMU::VAddr_InstFetch_MMU_API(uint64_t begin_addr, uint64_t size, void* buffer) {
+ALWAYS_INLINE inline VAddr_RW_Feedback_e RV64SV39_MMU::VAddr_InstFetch_MMU_API(uint64_t begin_addr, uint64_t size, void* buffer) {
     assert(begin_addr % 2 == 0);
     if(size == 4 && begin_addr % 4 == 2) {
         // A 4-byte instruction could be placed at different pages, but we do not want to throw page fault
@@ -58,7 +60,6 @@ VAddr_RW_Feedback_e RV64SV39_MMU::VAddr_InstFetch_MMU_API(uint64_t begin_addr, u
         return INST_ACCESS_OK;
     }
     // ----- Need page-based vaddr converting
-//    assert(0);
     // --- Check if data within page region
     if ((begin_addr >> 12) != ((begin_addr + size - 1) >> 12)) {
         // Out of page range, cross-page access
@@ -68,7 +69,7 @@ VAddr_RW_Feedback_e RV64SV39_MMU::VAddr_InstFetch_MMU_API(uint64_t begin_addr, u
     SV39_TLB_Entry_t* tlb_entry = getTLBEntry({.val = begin_addr});
     if (!tlb_entry || !tlb_entry->A || !tlb_entry->X) { return INST_PAGE_FAULT; }
     if ( (currentPrivMode == U_MODE && !tlb_entry->U)
-      || (currentPrivMode == S_MODE && tlb_entry->U) ) {
+         || (currentPrivMode == S_MODE && tlb_entry->U) ) {
         return INST_PAGE_FAULT;
     }
     // --- Get physical address from tlb_entry
@@ -83,12 +84,12 @@ VAddr_RW_Feedback_e RV64SV39_MMU::VAddr_InstFetch_MMU_API(uint64_t begin_addr, u
     return INST_ACCESS_OK;
 }
 
-VAddr_RW_Feedback_e RV64SV39_MMU::VAddr_WriteBuffer_MMU_API(uint64_t begin_addr, uint64_t size, const uint8_t *buffer) {
+ALWAYS_INLINE inline VAddr_RW_Feedback_e RV64SV39_MMU::VAddr_WriteBuffer_MMU_API(uint64_t begin_addr, uint64_t size, const uint8_t *buffer) {
     const SATP_Reg_t* satp_reg = (SATP_Reg_t*)&satp;
     const CSReg_MStatus_t* mstatus = (CSReg_MStatus_t*)&status;
     // --- No need to do page-based vaddr converting
     if ( (currentPrivMode == M_MODE && (!mstatus->mprv || mstatus->mpp == M_MODE))
-      || (satp_reg->mode == 0) ) {
+         || (satp_reg->mode == 0) ) {
         FuncReturnFeedback_e pwrite_fb = sysBus->PAddr_WriteBuffer_MMIOBus_API(begin_addr,size,buffer);
         if (pwrite_fb != MEMU_OK) { return VADDR_ACCESS_FAULT; }
         return VADDR_ACCESS_OK;
@@ -119,8 +120,8 @@ VAddr_RW_Feedback_e RV64SV39_MMU::VAddr_WriteBuffer_MMU_API(uint64_t begin_addr,
     return VADDR_ACCESS_OK;
 }
 
-void RV64SV39_MMU::SV39_FlushTLB_sfence_vma(uint64_t vaddr, uint64_t asid) {
-    for (int i=0;i<32;i++) {
+ALWAYS_INLINE inline void RV64SV39_MMU::SV39_FlushTLB_sfence_vma(uint64_t vaddr, uint64_t asid) {
+    for (int i=0;i<TLB_SIZE;i++) {
         if (tlb[i].asid == asid || asid == 0) {
             if (vaddr == 0) tlb[i].pagesize = 0;
             else {
@@ -141,17 +142,16 @@ void RV64SV39_MMU::SV39_FlushTLB_sfence_vma(uint64_t vaddr, uint64_t asid) {
     }
 }
 
-bool RV64SV39_MMU::isValidDirPTE(const SV39_PageTableEntry_t& pte) {
+ALWAYS_INLINE inline bool RV64SV39_MMU::isValidDirPTE(const SV39_PageTableEntry_t& pte) {
     if(!pte.V) return false;                     // Current entry has to be VALID
     if(pte.R || pte.W || pte.X) return false;    // R W X bits all have to be ZERO for Page Dir Entry
     if(pte.reserved) return false;               // Reserved fiedls has to be ZERO
     if(pte.PBMT) return false;                   // TODO: Not implemented feature, to be replace with panic func
     if(!pte.R && !pte.W && !pte.X) return true;  // R W X bits all ZERO means a DIR PTE
     assert(0);
-    //    return true;
 }
 
-bool RV64SV39_MMU::isValidLeafPTE(const SV39_PageTableEntry_t &pte) {
+ALWAYS_INLINE inline bool RV64SV39_MMU::isValidLeafPTE(const SV39_PageTableEntry_t &pte) {
     if(!pte.V) return false;                     // Current entry has to be VALID
     if(pte.W && !pte.R) return false;            // Writable but not readable is INVALID
     if(!pte.R && !pte.W && !pte.X) return false; // R W X bits all ZERO means a DIR PTE, not a LEAF PTE
@@ -161,25 +161,33 @@ bool RV64SV39_MMU::isValidLeafPTE(const SV39_PageTableEntry_t &pte) {
     assert(0);
 }
 
-uint16_t RV64SV39_MMU::getTLBIndexToSwapOut() {
+ALWAYS_INLINE inline uint16_t RV64SV39_MMU::getTLBIndexToSwapOut() {
     uint16_t index = lastSwappedIndex;
-    lastSwappedIndex = (lastSwappedIndex + 1) % 32;
+    lastSwappedIndex = (lastSwappedIndex + 1) % TLB_SIZE;
     return index;
 }
 
-SV39_TLB_Entry_t * RV64SV39_MMU::writeTLB(const SV39_PageTableEntry_t& leaf_pte, uint64_t page_size,
-                                          const SV39_VAddr_t& vaddr) {
+ALWAYS_INLINE inline SV39_TLB_Entry_t * RV64SV39_MMU::writeTLB(const SV39_PageTableEntry_t& leaf_pte, uint64_t page_size,
+                                                               const SV39_VAddr_t& vaddr) {
+    // --- Get the entry to swap out
     SV39_TLB_Entry_t* result = &(tlb[getTLBIndexToSwapOut()]);
-    // Joint PAddr of physical page
+    // --- Clear the entry in the hash map
+//    if(tlbGetCache.find(result->vpa) != tlbGetCache.end()) {
+//        tlbGetCache.erase(result->vpa);
+//    }
+
+    // --- Joint PAddr of physical page
     result->ppa = (((uint64_t)(leaf_pte.PPN2) << 18) | ((uint64_t)(leaf_pte.PPN1) << 9) | ((uint64_t)(leaf_pte.PPN0))) << 12;
     assert((result->ppa) == ((((((uint64_t)leaf_pte.PPN2 << 9) | (uint64_t)leaf_pte.PPN1) << 9) | (uint64_t)leaf_pte.PPN0) << 12));
-    // Get VAddr of page
-    uint64_t mask = page_size == 1 << 12 ? _4k_PAGE_ADDR_MASK :
-                    page_size == 1 << 21 ? _2M_PAGE_ADDR_MASK :
-                    page_size == 1 << 30 ? _1G_PAGE_ADDR_MASK : 0;
+    // --- Get VAddr of page
+    uint64_t mask = page_size == (1 << 12) ? _4k_PAGE_ADDR_MASK :
+                    page_size == (1 << 21) ? _2M_PAGE_ADDR_MASK :
+                    page_size == (1 << 30) ? _1G_PAGE_ADDR_MASK : 0;
     assert(mask);
     result->vpa = vaddr.val & mask;
-    assert((result->vpa) == (page_size == (1<<12)) ? (vaddr.val - (vaddr.val % (1<<12))) : (page_size == (1<<21)) ? (vaddr.val - (vaddr.val % (1<<21))) : (vaddr.val - (vaddr.val % (1<<30))));
+    assert((result->vpa) == ((page_size == (1<<12)) ? (vaddr.val - (vaddr.val % (1<<12))) :
+                             (page_size == (1<<21)) ? (vaddr.val - (vaddr.val % (1<<21))) :
+                             (vaddr.val - (vaddr.val % (1<<30)))));
 
     result->asid = satp.asid;
     result->pagesize = page_size == (1 << 12) ? 1 :
@@ -194,20 +202,44 @@ SV39_TLB_Entry_t * RV64SV39_MMU::writeTLB(const SV39_PageTableEntry_t& leaf_pte,
     result->A = leaf_pte.A;
     result->D = leaf_pte.D;
 
+//    tlbGetCache[result->vpa] = result;
+
     // TODO: Self-test, to be removed
-    if(getTLBEntry(vaddr) != result) assert(false);
+//    if(getTLBEntry(vaddr) != result) assert(false);
 
     return result;
 }
 
-SV39_TLB_Entry_t* RV64SV39_MMU::getTLBEntry(SV39_VAddr_t vaddr) {
+ALWAYS_INLINE inline SV39_TLB_Entry_t* RV64SV39_MMU::getTLBEntry(SV39_VAddr_t vaddr) {
     // RISC-V ISA Regulation, blank field has to be the same as HSB of vpn_2
     assert((vaddr.blank == 0b1111111111111111111111111 && (vaddr.vpn_2 >> 8)) ||
            (vaddr.blank == 0 && ((vaddr.vpn_2 >> 8) == 0)));
     // ----- Try finding entry in TLB
-    // TODO: Replace with HashMap for better performance
     SV39_TLB_Entry_t* tlb_entry_ptr = nullptr;
-    for (int i = 0; i < 32; i++) {
+//    // --- Use HashMap to speed up the TLB match procedure
+//    if(tlbGetCache.find(vaddr.val & _4k_PAGE_ADDR_MASK) != tlbGetCache.end()) {
+//        SV39_TLB_Entry_t* ptr = tlbGetCache.at(vaddr.val & _4k_PAGE_ADDR_MASK);
+//        if((ptr->asid == satp.asid) || (ptr->G)) {
+////            assert(ptr->vpa == (vaddr.val & _4k_PAGE_ADDR_MASK));
+//            if(ptr->pagesize == 1) return ptr;
+//        }
+//    }
+//    if(tlbGetCache.find(vaddr.val & _2M_PAGE_ADDR_MASK) != tlbGetCache.end()) {
+//        SV39_TLB_Entry_t* ptr = tlbGetCache.at(vaddr.val & _2M_PAGE_ADDR_MASK);
+//        if((ptr->asid == satp.asid) || (ptr->G)) {
+////            assert(ptr->vpa == (vaddr.val & _2M_PAGE_ADDR_MASK));
+//            if(ptr->pagesize == 2) return ptr;
+//        }
+//    }
+//    if(tlbGetCache.find(vaddr.val & _1G_PAGE_ADDR_MASK) != tlbGetCache.end()) {
+//        SV39_TLB_Entry_t* ptr = tlbGetCache.at(vaddr.val & _1G_PAGE_ADDR_MASK);
+//        if((ptr->asid == satp.asid) || (ptr->G)) {
+////            assert(ptr->vpa == (vaddr.val & _1G_PAGE_ADDR_MASK));
+//            if(ptr->pagesize == 3) return ptr;
+//        }
+//    }
+
+    for(int i = 0; i < TLB_SIZE; i++) {
         if (tlb[i].asid == satp.asid || tlb[i].G) {
             uint64_t page_addr_mask = tlb[i].pagesize == 1 ? _4k_PAGE_ADDR_MASK :
                                       tlb[i].pagesize == 2 ? _2M_PAGE_ADDR_MASK :
@@ -216,6 +248,7 @@ SV39_TLB_Entry_t* RV64SV39_MMU::getTLBEntry(SV39_VAddr_t vaddr) {
             if((vaddr.val & page_addr_mask) == tlb[i].vpa) {
                 assert(tlb_entry_ptr == nullptr);
                 tlb_entry_ptr = &tlb[i];
+//                tlbGetCache[vaddr.val & page_addr_mask] = &tlb[i];
             }
         }
     }

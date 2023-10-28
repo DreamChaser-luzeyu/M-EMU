@@ -9,7 +9,9 @@ extern "C" {
 
 // NOTE: Do not define InstanceDesc_GV as constant. 
 InstanceDesc_t InstanceDesc_GV = {
-        .desc_str = "default_platform"
+        .desc_str = "default_platform",
+        .env_help_list = nullptr,
+        .env_help_list_len = 0,
 };
 
 Platform_I* GetInstance_API() {

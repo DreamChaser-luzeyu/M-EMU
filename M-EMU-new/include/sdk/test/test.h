@@ -44,8 +44,9 @@ static void RunAllTest_Test() {
     if(!TestCaseList_Tail) assert(0);
     if(!TestCaseList_Head) assert(0);
     for(TestCase_Desc_t* ptr = TestCaseList_Head; ptr; ptr = ptr->next) {
-        std::cout << STYLE_BKG_GREEN << "[TEST ] Case " << ptr->name << " running..." << STYLE_RST << std::endl;
+        std::cout << STYLE_BKG_YELLOW << "[TEST ] Case " << ptr->name << " running..." << STYLE_RST << std::endl;
         ptr->func();
+        std::cout << STYLE_BKG_GREEN << "[TEST ] Case " << ptr->name << " passed!" << STYLE_RST << std::endl;
     }
     std::cout << STYLE_BKG_GREEN << "[TEST ] All case passed!" << STYLE_RST << std::endl;
 }

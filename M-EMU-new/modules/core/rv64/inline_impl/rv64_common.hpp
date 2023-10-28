@@ -1,33 +1,23 @@
-#include <limits.h>
-#include "builtin/core/RV64Core.h"
+#pragma once
 
+#include <climits>
 
-FuncReturnFeedback_e RV64Core::DumpRegister_CoreAPI(std::vector<RegisterItem_t> &regs)
-{
-    return MEMU_OK;
-}
-
-FuncReturnFeedback_e RV64Core::DumpProgramCounter_CoreAPI(RegisterItem_t &reg)
-{
-    return MEMU_OK;
-}
-
-FuncReturnFeedback_e RV64Core::WriteProgramCounter_CoreAPI(RegItemVal_t reg_val)
+ALWAYS_INLINE inline FuncReturnFeedback_e RV64Core::WriteProgramCounter_CoreAPI(RegItemVal_t reg_val)
 {
     currentProgramCounter = reg_val.u64_val;
     return MEMU_OK;
 }
 
-FuncReturnFeedback_e RV64Core::setGPRByIndex_CoreAPI(uint8_t gpr_index, int64_t val)
+ALWAYS_INLINE inline FuncReturnFeedback_e RV64Core::setGPRByIndex_CoreAPI(uint8_t gpr_index, int64_t val)
 {
     assert(gpr_index < 32);
-    if(gpr_index == 0) { return MEMU_OK; }
+    if(unlikely(gpr_index == 0)) { return MEMU_OK; }
     GPR[gpr_index] = val;
     return MEMU_OK;
 }
 
 
-int64_t RV64Core::alu_exec(int64_t a, int64_t b, ALU_Op_enum op, bool op_32) {
+ALWAYS_INLINE inline int64_t RV64Core::alu_exec(int64_t a, int64_t b, ALU_Op_enum op, bool op_32) {
     if (op_32) {
         a = (int32_t)a;
         b = (int32_t)b;
@@ -102,49 +92,3 @@ int64_t RV64Core::alu_exec(int64_t a, int64_t b, ALU_Op_enum op, bool op_32) {
     if (op_32) result = (int32_t)result;
     return result;
 }
-
-void RV64Core::reset() {
-    trapProgramCounter = 0;
-    needTrap = false;
-    currentPrivMode = M_MODE;
-    nextPrivMode = M_MODE;
-    status = 0;
-    CSReg_MStatus_t* mstatus = (CSReg_MStatus_t*)&status;
-    mstatus->sxl = 2;
-    mstatus->uxl = 2;
-    csrMachineISA.ext = rv_ext('i') | rv_ext('m') | rv_ext('a') | rv_ext('c') | rv_ext('s') | rv_ext('u');
-    csrMachineISA.mxl = 2;
-    csrMachineISA.blank = 0;
-    csrMExceptionDelegation = 0;
-    csrMIntDelegation = 0;
-    csrIntEnable = 0;
-    csrMTrapVecBaseAddr.val = 0;
-    csrMscratch = 0;
-    csrMExceptionPC = 0;
-    csrMachineCause.val = 0;
-    csrMachineTrapVal = 0;
-    csrMCounterEN.val = 0;
-    csrIntPending.val = 0;
-    mcycle = 0;
-    minstret = 0;
-    csrSTrapVecBaseAddr.val = 0;
-    csrSscratch = 0;
-    csrSExceptionPC = 0;
-    csrSupervisorCause.val = 0;
-    csrSupervisorTrapVal = 0;
-    satp.val = 0;
-    csrSCounterEN.val = 0;
-
-    GPR[0] = 0;
-    for(int i=1; i<32; i++) setGPR(i, 0);
-}
-
-
-
-
-
-
-
-
-
-

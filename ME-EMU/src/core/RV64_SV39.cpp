@@ -179,7 +179,9 @@ SV39_TLB_Entry_t * RV64SV39_MMU::writeTLB(const SV39_PageTableEntry_t& leaf_pte,
                     page_size == 1 << 30 ? _1G_PAGE_ADDR_MASK : 0;
     assert(mask);
     result->vpa = vaddr.val & mask;
-    assert((result->vpa) == (page_size == (1<<12)) ? (vaddr.val - (vaddr.val % (1<<12))) : (page_size == (1<<21)) ? (vaddr.val - (vaddr.val % (1<<21))) : (vaddr.val - (vaddr.val % (1<<30))));
+    assert((result->vpa) == ((page_size == (1<<12)) ? (vaddr.val - (vaddr.val % (1<<12))) :
+                             (page_size == (1<<21)) ? (vaddr.val - (vaddr.val % (1<<21))) :
+                             (vaddr.val - (vaddr.val % (1<<30)))));
 
     result->asid = satp.asid;
     result->pagesize = page_size == (1 << 12) ? 1 :
