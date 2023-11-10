@@ -2,17 +2,20 @@
 ## Overview
 A modularized full-system emulator.
 
-This project is developed based on [cemu](https://github.com/cyyself/cemu) and is in the early stage of development.
-
 ## Features
 - Modularized structure design
-  - MMIO-based peripherial framework
-  - ISA-independent core interface
 - Easy to read & well-commented code style
-- GDB Remote Serial Protocol support (not implemented)
+- Minimal GDB Remote Serial Protocol support
+
+## Built-in Submodules
+- MMIO-based bus
+- RISC V 64 Core with rv64imac support
+  - Refactored based on the [cemu](https://github.com/cyyself/cemu)
+- Xilinx uartlite console support
+  - Improved based on the [cemu](https://github.com/cyyself/cemu)
 
 ## Design
-![design](me-emu.svg)
+<!-- ![design](me-emu.svg) -->
 
 ## Documents & Guides
 ### Documents
