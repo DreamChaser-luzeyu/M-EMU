@@ -9,7 +9,8 @@ add_subdirectory(modules)
 
 #link_directories(${PROJECT_SOURCE_DIR}/lib)
 
-aux_source_directory(src FRAMEWORK_SRCS)
+aux_source_directory(src           FRAMEWORK_SRCS)
+aux_source_directory(src/gdb_stub  FRAMEWORK_SRCS)
 
 set(SOURCE_FILES
         ${PROJECT_SOURCE_DIR}/main.cpp

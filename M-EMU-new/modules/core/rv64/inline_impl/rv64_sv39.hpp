@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RV64SV39_MMU.h"
+//#include "RV64SV39_MMU.h"
 
 ALWAYS_INLINE inline VAddr_RW_Feedback_e RV64SV39_MMU::VAddr_ReadBuffer_MMU_API(uint64_t begin_addr, uint64_t size, uint8_t *buffer) {
     const SATP_Reg_t* satp_reg = (SATP_Reg_t*)&satp;
@@ -53,8 +53,9 @@ ALWAYS_INLINE inline VAddr_RW_Feedback_e RV64SV39_MMU::VAddr_InstFetch_MMU_API(u
         return VADDR_ACCESS_OK;
     }
     const SATP_Reg_t *satp_reg = (SATP_Reg_t *)&satp;
+    assert(satp_reg->mode == satp.mode);
     // --- No need to do page-based vaddr converting
-    if (currentPrivMode == M_MODE || satp_reg->mode == 0) {
+    if (currentPrivMode == M_MODE || satp.mode == 0) {
         FuncReturnFeedback_e pstatus = sysBus->PAddr_ReadBuffer_MMIOBus_API(begin_addr, size, (uint8_t*)buffer);
         if (pstatus != MEMU_OK) { return INST_ACCESS_FAULT; }
         return INST_ACCESS_OK;
@@ -172,9 +173,9 @@ ALWAYS_INLINE inline SV39_TLB_Entry_t * RV64SV39_MMU::writeTLB(const SV39_PageTa
     // --- Get the entry to swap out
     SV39_TLB_Entry_t* result = &(tlb[getTLBIndexToSwapOut()]);
     // --- Clear the entry in the hash map
-//    if(tlbGetCache.find(result->vpa) != tlbGetCache.end()) {
-//        tlbGetCache.erase(result->vpa);
-//    }
+    if(tlbGetCache.find(result->vpa) != tlbGetCache.end()) {
+        tlbGetCache.erase(result->vpa);
+    }
 
     // --- Joint PAddr of physical page
     result->ppa = (((uint64_t)(leaf_pte.PPN2) << 18) | ((uint64_t)(leaf_pte.PPN1) << 9) | ((uint64_t)(leaf_pte.PPN0))) << 12;
@@ -202,7 +203,7 @@ ALWAYS_INLINE inline SV39_TLB_Entry_t * RV64SV39_MMU::writeTLB(const SV39_PageTa
     result->A = leaf_pte.A;
     result->D = leaf_pte.D;
 
-//    tlbGetCache[result->vpa] = result;
+    tlbGetCache[result->vpa] = result;
 
     // TODO: Self-test, to be removed
 //    if(getTLBEntry(vaddr) != result) assert(false);
@@ -216,28 +217,28 @@ ALWAYS_INLINE inline SV39_TLB_Entry_t* RV64SV39_MMU::getTLBEntry(SV39_VAddr_t va
            (vaddr.blank == 0 && ((vaddr.vpn_2 >> 8) == 0)));
     // ----- Try finding entry in TLB
     SV39_TLB_Entry_t* tlb_entry_ptr = nullptr;
-//    // --- Use HashMap to speed up the TLB match procedure
-//    if(tlbGetCache.find(vaddr.val & _4k_PAGE_ADDR_MASK) != tlbGetCache.end()) {
-//        SV39_TLB_Entry_t* ptr = tlbGetCache.at(vaddr.val & _4k_PAGE_ADDR_MASK);
-//        if((ptr->asid == satp.asid) || (ptr->G)) {
-////            assert(ptr->vpa == (vaddr.val & _4k_PAGE_ADDR_MASK));
-//            if(ptr->pagesize == 1) return ptr;
-//        }
-//    }
-//    if(tlbGetCache.find(vaddr.val & _2M_PAGE_ADDR_MASK) != tlbGetCache.end()) {
-//        SV39_TLB_Entry_t* ptr = tlbGetCache.at(vaddr.val & _2M_PAGE_ADDR_MASK);
-//        if((ptr->asid == satp.asid) || (ptr->G)) {
-////            assert(ptr->vpa == (vaddr.val & _2M_PAGE_ADDR_MASK));
-//            if(ptr->pagesize == 2) return ptr;
-//        }
-//    }
-//    if(tlbGetCache.find(vaddr.val & _1G_PAGE_ADDR_MASK) != tlbGetCache.end()) {
-//        SV39_TLB_Entry_t* ptr = tlbGetCache.at(vaddr.val & _1G_PAGE_ADDR_MASK);
-//        if((ptr->asid == satp.asid) || (ptr->G)) {
-////            assert(ptr->vpa == (vaddr.val & _1G_PAGE_ADDR_MASK));
-//            if(ptr->pagesize == 3) return ptr;
-//        }
-//    }
+    // --- Use HashMap to speed up the TLB match procedure
+    if(tlbGetCache.find(vaddr.val & _4k_PAGE_ADDR_MASK) != tlbGetCache.end()) {
+        SV39_TLB_Entry_t* ptr = tlbGetCache.at(vaddr.val & _4k_PAGE_ADDR_MASK);
+        if((ptr->asid == satp.asid) || (ptr->G)) {
+//            assert(ptr->vpa == (vaddr.val & _4k_PAGE_ADDR_MASK));
+            if(ptr->pagesize == 1) return ptr;
+        }
+    }
+    if(tlbGetCache.find(vaddr.val & _2M_PAGE_ADDR_MASK) != tlbGetCache.end()) {
+        SV39_TLB_Entry_t* ptr = tlbGetCache.at(vaddr.val & _2M_PAGE_ADDR_MASK);
+        if((ptr->asid == satp.asid) || (ptr->G)) {
+//            assert(ptr->vpa == (vaddr.val & _2M_PAGE_ADDR_MASK));
+            if(ptr->pagesize == 2) return ptr;
+        }
+    }
+    if(tlbGetCache.find(vaddr.val & _1G_PAGE_ADDR_MASK) != tlbGetCache.end()) {
+        SV39_TLB_Entry_t* ptr = tlbGetCache.at(vaddr.val & _1G_PAGE_ADDR_MASK);
+        if((ptr->asid == satp.asid) || (ptr->G)) {
+//            assert(ptr->vpa == (vaddr.val & _1G_PAGE_ADDR_MASK));
+            if(ptr->pagesize == 3) return ptr;
+        }
+    }
 
     for(int i = 0; i < TLB_SIZE; i++) {
         if (tlb[i].asid == satp.asid || tlb[i].G) {
@@ -248,7 +249,7 @@ ALWAYS_INLINE inline SV39_TLB_Entry_t* RV64SV39_MMU::getTLBEntry(SV39_VAddr_t va
             if((vaddr.val & page_addr_mask) == tlb[i].vpa) {
                 assert(tlb_entry_ptr == nullptr);
                 tlb_entry_ptr = &tlb[i];
-//                tlbGetCache[vaddr.val & page_addr_mask] = &tlb[i];
+                tlbGetCache[vaddr.val & page_addr_mask] = &tlb[i];
             }
         }
     }

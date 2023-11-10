@@ -34,7 +34,7 @@ ALWAYS_INLINE void RV64Core::preExec() {
             return;
         }
     }
-        // 2-- For other mode
+    // 2-- For other mode
     else {
         IntType_e int_type = bits_to_int_type(int_bits);
         CSReg_MStatus_t* csrMachineStatus = (CSReg_MStatus_t *)(&status);

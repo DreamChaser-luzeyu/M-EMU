@@ -23,3 +23,9 @@
 # define ALWAYS_INLINE
 # define UNUSED
 #endif
+
+#ifdef __cplusplus
+#define EXTERN_C extern "C"
+#else
+#define EXTERN_C
+#endif

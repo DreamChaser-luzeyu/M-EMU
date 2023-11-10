@@ -54,6 +54,11 @@ TEST_CASE(test_obj_factory_platform, "Object Factory Get Platform Test") {
     assert(platform);
 }
 
-void test() {
-    RunAllTest_Test();
+TEST_CASE(gdb_rsp, "GDB RSP Test") {
+
+
+}
+
+void Main_Test() {
+    RunUnitTest_Test();
 }

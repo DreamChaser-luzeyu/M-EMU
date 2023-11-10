@@ -36,7 +36,7 @@ class RV64SV39_MMU : public MMU_I {
 private:
     PrivMode_e& currentPrivMode;
     SV39_TLB_Entry_t tlb[TLB_SIZE];
-//    std::unordered_map<uint64_t, SV39_TLB_Entry_t*> tlbGetCache;  // VPA to TLB_Entry
+    std::unordered_map<uint64_t, SV39_TLB_Entry_t*> tlbGetCache;  // VPA to TLB_Entry
     uint16_t lastSwappedIndex;
     SATP_Reg_t& satp;
     uint64_t& status;
@@ -83,8 +83,8 @@ public:
     ALWAYS_INLINE inline RV64_ExecFeedbackCode_e vaddrAtomicMemOperation(uint64_t start_addr, uint64_t size, AMO_Funct_enum op, int64_t src, int64_t& dst);
     ALWAYS_INLINE inline RV64_ExecFeedbackCode_e vaddrLoadReserved(uint64_t start_addr, uint64_t size, uint8_t *buffer);
     ALWAYS_INLINE inline RV64_ExecFeedbackCode_e vaddrStoreConditional(uint64_t start_addr, uint64_t size, const uint8_t *buffer, bool &sc_fail);
-
     ALWAYS_INLINE inline void SV39_FlushTLB_sfence_vma(uint64_t vaddr, uint64_t asid);
+    MMIOBus_I* getSysBus_Debug() { return sysBus; }
 private:
     ALWAYS_INLINE inline bool isValidDirPTE(const SV39_PageTableEntry_t& pte);
     ALWAYS_INLINE inline bool isValidLeafPTE(const SV39_PageTableEntry_t& pte);

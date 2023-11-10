@@ -1,8 +1,10 @@
 #pragma once
 
 #include <vector>
-#include <cassert>
+#include <unordered_map>
 #include <algorithm>
+#include <cassert>
+#include "sdk/symbol_attr.h"
 #include "interface/MMIO_Bus.h"
 #include "interface/MMIO_Dev.h"
 
@@ -12,13 +14,15 @@ class MEmu_MMIOBus : public MMIOBus_I {
     // ----- Fields
 private:
     std::vector<MMIODev_I*> mmioDevs;
+    std::unordered_map<uint64_t, MMIODev_I*> devFindCache;
     // ----- Interface implementation
 public:
-    FuncReturnFeedback_e PAddr_ReadBuffer_MMIOBus_API(uint64_t begin_addr, uint64_t size, uint8_t *buffer) override {
+    ALWAYS_INLINE inline FuncReturnFeedback_e PAddr_ReadBuffer_MMIOBus_API(uint64_t begin_addr, uint64_t size, uint8_t *buffer) override {
         if(!buffer) { return MEMU_NULL_PTR; }
 
         MMIODevHandle_t dev;
-        findDevAccordingToAddr(begin_addr, &dev);
+        FuncReturnFeedback_e feedback = findDevAccordingToAddr(begin_addr, &dev);
+        if(feedback == MEMU_NOT_FOUND) return MEMU_NOT_ACCESSIBLE;
 
         assert(dev);
         dev->ReadBuffer_MMIODev_API(begin_addr - dev->getDevBaseAddr(), size, buffer);
@@ -26,11 +30,12 @@ public:
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_e PAddr_WriteBuffer_MMIOBus_API(uint64_t begin_addr, uint64_t size, const uint8_t *buffer) override {
+    ALWAYS_INLINE inline FuncReturnFeedback_e PAddr_WriteBuffer_MMIOBus_API(uint64_t begin_addr, uint64_t size, const uint8_t *buffer) override {
         if(!buffer) { return MEMU_NULL_PTR; }
 
         MMIODevHandle_t dev;
-        findDevAccordingToAddr(begin_addr, &dev);
+        FuncReturnFeedback_e feedback = findDevAccordingToAddr(begin_addr, &dev);
+        if(feedback == MEMU_NOT_FOUND) return MEMU_NOT_ACCESSIBLE;
 
         assert(dev);
         dev->WriteBuffer_MMIODev_API(begin_addr - dev->getDevBaseAddr(), size, buffer);
@@ -58,10 +63,17 @@ public:
 
     // ----- Member functions
 private:
-    FuncReturnFeedback_e findDevAccordingToAddr(uint64_t addr, MMIODevHandle_t* dev_ret) {
+    ALWAYS_INLINE inline FuncReturnFeedback_e findDevAccordingToAddr(uint64_t addr, MMIODevHandle_t* dev_ret) {
+        // TODO: Let's check RAM first for better performance
+        auto dev_it = devFindCache.find(addr);
+        if(likely(dev_it != devFindCache.end())) {
+            *dev_ret = dev_it->second;
+            return MEMU_OK;
+        }
         // TODO: Replace with binary search for better performance
         for(auto d : this->mmioDevs) {
             if(d->isAddrInRange(addr)) {
+                devFindCache[addr] = d;     // Add current dev to cache
                 *dev_ret = d;
                 return MEMU_OK;
             }

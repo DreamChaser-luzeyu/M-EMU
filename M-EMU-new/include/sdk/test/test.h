@@ -1,9 +1,9 @@
 #pragma once
 
 /**
- * NOTE: Please only include this header file from your test case document!
- *       Your test case will not run if you define your test case, include
- *       this header file from other document, and call RunAllTest_Test(),
+ * NOTE: Please only include this header file from your Main_Test case document!
+ *       Your test case will not run if you define your Main_Test case, include
+ *       this header file from other document, and call RunUnitTest_Test(),
  *       because all symbols defined here are marked static.
  */
 
@@ -21,17 +21,20 @@ typedef struct TestCase_Desc {
 } TestCase_Desc_t;
 
 static TestCase_Desc_t* TestCaseList_Head = nullptr;
-static TestCase_Desc_t* TestCaseList_Tail = nullptr;
+//static TestCase_Desc_t* TestCaseList_Tail = nullptr;
 
 static void register_test(TestCase_Desc* desc) {
-    if(TestCaseList_Tail && TestCaseList_Head) {
-        TestCaseList_Tail->next = desc;
-        TestCaseList_Tail = desc;
-    }
-    else {
-        TestCaseList_Head = desc;
-        TestCaseList_Tail = desc;
-    }
+//    if(TestCaseList_Tail && TestCaseList_Head) {
+//        TestCaseList_Tail->next = desc;
+//        TestCaseList_Tail = desc;
+//    }
+//    else {
+//        TestCaseList_Head = desc;
+//        TestCaseList_Tail = desc;
+//    }
+    TestCase_Desc_t* old_list_head = TestCaseList_Head;
+    TestCaseList_Head = desc;
+    desc->next = old_list_head;
 }
 
 /**
@@ -40,17 +43,24 @@ static void register_test(TestCase_Desc* desc) {
  *       another function calling this function, and call the function you defined at some
  *       other document.
  */
-static void RunAllTest_Test() {
-    if(!TestCaseList_Tail) assert(0);
-    if(!TestCaseList_Head) assert(0);
+static void RunUnitTest_Test() {
+    if(!TestCaseList_Head) {
+        LOG_WARN("No test case to run!");
+        return;
+    }
+
     for(TestCase_Desc_t* ptr = TestCaseList_Head; ptr; ptr = ptr->next) {
         std::cout << STYLE_BKG_YELLOW << "[TEST ] Case " << ptr->name << " running..." << STYLE_RST << std::endl;
         ptr->func();
         std::cout << STYLE_BKG_GREEN << "[TEST ] Case " << ptr->name << " passed!" << STYLE_RST << std::endl;
     }
     std::cout << STYLE_BKG_GREEN << "[TEST ] All case passed!" << STYLE_RST << std::endl;
+    LOG_CLEAR();
 }
 
+/**
+ * NOTE: You should not define TEST_CASE in header files
+ */
 #ifdef __GNUC__
 #define TEST_CASE(case_name, case_desc)                                  \
 static void case_name(void);                                             \
@@ -66,3 +76,10 @@ static void __attribute__((constructor(101))) case_name##_helper() {     \
 static void case_name(void)
 #endif
 
+/**
+ * Every `TEST_CASE` in the same document compose a test unit.
+ * `RUN_TEST_UNIT` means to run all TEST_CASEs in the test unit.
+ * @NOTE `unit_name` should not conflict with any global symbol name
+ */
+#define REGISTER_TEST_UNIT(unit_name) void unit_name() { RunUnitTest_Test(); }
+#define RUN_TEST_UNIT(unit_name) do {extern void unit_name(); unit_name(); } while(0)

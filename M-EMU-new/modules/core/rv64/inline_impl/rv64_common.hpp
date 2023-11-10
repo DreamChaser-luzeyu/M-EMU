@@ -2,19 +2,8 @@
 
 #include <climits>
 
-ALWAYS_INLINE inline FuncReturnFeedback_e RV64Core::WriteProgramCounter_CoreAPI(RegItemVal_t reg_val)
-{
-    currentProgramCounter = reg_val.u64_val;
-    return MEMU_OK;
-}
 
-ALWAYS_INLINE inline FuncReturnFeedback_e RV64Core::setGPRByIndex_CoreAPI(uint8_t gpr_index, int64_t val)
-{
-    assert(gpr_index < 32);
-    if(unlikely(gpr_index == 0)) { return MEMU_OK; }
-    GPR[gpr_index] = val;
-    return MEMU_OK;
-}
+
 
 
 ALWAYS_INLINE inline int64_t RV64Core::alu_exec(int64_t a, int64_t b, ALU_Op_enum op, bool op_32) {
@@ -92,3 +81,5 @@ ALWAYS_INLINE inline int64_t RV64Core::alu_exec(int64_t a, int64_t b, ALU_Op_enu
     if (op_32) result = (int32_t)result;
     return result;
 }
+
+

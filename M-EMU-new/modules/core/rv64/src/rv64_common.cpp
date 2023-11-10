@@ -5,14 +5,28 @@
 #include "module_manifest.hpp"
 #include "RV64Core.h"
 
-
-FuncReturnFeedback_e RV64Core::DumpRegister_CoreAPI(std::vector<RegisterItem_t> &regs)
+FuncReturnFeedback_e RV64Core::WriteProgramCounter_CoreAPI(RegItemVal_t reg_val)
 {
+    currentProgramCounter = reg_val.u64_val;
     return MEMU_OK;
 }
 
+FuncReturnFeedback_e RV64Core::SetGPRByIndex_CoreAPI(uint8_t gpr_index, int64_t val)
+{
+    assert(gpr_index < 32);
+    if(unlikely(gpr_index == 0)) { return MEMU_OK; }
+    GPR[gpr_index] = val;
+    return MEMU_OK;
+}
+
+
+
 FuncReturnFeedback_e RV64Core::DumpProgramCounter_CoreAPI(RegisterItem_t &reg)
 {
+    reg.val.u64_val = currentProgramCounter;
+    reg.reg_id = 33;
+    reg.size = 8;
+    strcpy(reg.disp_name, "pc");
     return MEMU_OK;
 }
 

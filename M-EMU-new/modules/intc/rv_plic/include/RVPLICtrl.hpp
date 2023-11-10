@@ -1,6 +1,8 @@
 #ifndef RV_PLIC_HPP
 #define RV_PLIC_HPP
 
+
+#include "sdk/symbol_attr.h"
 #include "mmio_dev.hpp"
 #include <cstring>
 #include <climits>

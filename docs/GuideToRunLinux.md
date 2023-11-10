@@ -27,7 +27,7 @@ Make sure that you have added the path to the gcc executables to your `PATH` env
 
 Use the following command to build OpenSBI:
 ```bash
-make CROSS_COMPILE=riscv64-unknown-linux-gnu- PLATFORM=generic PLATFORM_RISCV_ISA=rv64ima_zicsr_zifencei FW_FDT_PATH=cemu.dtb FW_PAYLOAD_PATH=<src_path_to_linux_kernel>/arch/riscv/boot/Image
+make CROSS_COMPILE=riscv64-unknown-linux-gnu- PLATFORM=generic PLATFORM_RISCV_ISA=rv64ima_zicsr_zifencei FW_FDT_PATH=cemu.dtb FW_PAYLOAD_PATH=path_to_linux_kernel_src/arch/riscv/boot/Image
 ```
 You could omit the `FW_PAYLOAD_PATH` env if you just want to build a pure opensbi.
 

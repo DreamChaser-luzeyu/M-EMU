@@ -1,7 +1,7 @@
 #pragma once
 
 #include <algorithm>
-#include "RV64SV39_MMU.h"
+//#include "RV64SV39_MMU.h"
 
 ALWAYS_INLINE inline RV64_ExecFeedbackCode_e RV64SV39_MMU::vaddrAtomicMemOperation(uint64_t start_addr,
                                                                                    uint64_t size,

@@ -8,8 +8,6 @@
 #include "RV64SV39_MMU.h"
 #include "rv64_int_status.h"
 
-
-
 #include <iostream>
 #include <fstream>
 
@@ -26,6 +24,14 @@ class RV64Core : public ProcessorCore_I {
     const uint64_t S_MODE_EXC_MASK = (1 << 16) - 1 - (1 << exec_ecall_from_machine);
     const uint64_t M_MODE_INT_MASK = S_MODE_INT_MASK | (1ull << int_m_ext) | (1ull << int_m_sw) | (1ull << int_m_timer);
     const uint8_t PC_ALIGN = 2;
+    // the name GDB should use when describing these register
+    const std::vector<std::string> GPR_NAME_ARR = {
+            "zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
+            "fp", "s1", "a0", "a1", "a2", "a3", "a4", "a5",
+            "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7",
+            "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6",
+    };
+    const std::string PC_NAME = "pc";
     // ----- Fields
 private:
     RV64SV39_MMU* sv39MMU;
@@ -74,14 +80,21 @@ private:
     PrivMode_e              nextPrivMode;
 
 
-    // ----- Interface implementations
+    // ----- Interface ProcessorCore_I implementations
 public:
-    FuncReturnFeedback_e DumpRegister_CoreAPI(std::vector<RegisterItem_t>& regs) override;
-    ALWAYS_INLINE inline FuncReturnFeedback_e Step_CoreAPI() override;
+    FuncReturnFeedback_e Step_CoreAPI() override;
     FuncReturnFeedback_e DumpProgramCounter_CoreAPI(RegisterItem_t& reg) override;
-    ALWAYS_INLINE inline FuncReturnFeedback_e WriteProgramCounter_CoreAPI(RegItemVal_t reg_val) override;
-    ALWAYS_INLINE inline FuncReturnFeedback_e setGPRByIndex_CoreAPI(uint8_t gpr_index, int64_t val) override;
-
+    FuncReturnFeedback_e WriteProgramCounter_CoreAPI(RegItemVal_t reg_val) override;
+    FuncReturnFeedback_e SetGPRByIndex_CoreAPI(uint8_t gpr_index, int64_t val) override;
+    // ----- Interface Debuggable_I implementations
+//    FuncReturnFeedback_e VAddrRead_CoreDebugAPI(uint64_t start_addr, uint64_t size, uint8_t *buffer) override;
+//    FuncReturnFeedback_e VAddrWrite_CoreDebugAPI(uint64_t start_addr,
+//                                                 uint64_t size, const uint8_t *buffer) override;
+    FuncReturnFeedback_e MemRead_CoreDebugAPI(uint64_t start_addr, uint64_t size, uint8_t *buffer) override;
+    FuncReturnFeedback_e MemWrite_CoreDebugAPI(uint64_t start_addr,
+                                               uint64_t size, const uint8_t *buffer) override;
+    FuncReturnFeedback_e DumpRegister_CoreAPI(std::vector<RegisterItem_t>& regs) override;
+    FuncReturnFeedback_e WriteAllRegister_CoreAPI(const std::vector<RegisterItem_t>& regs) override;
 
     // ----- Constructors & Destructors
     RV64Core(MMIOBus_I* sys_bus, uint16_t hart_id) :
@@ -108,14 +121,11 @@ private:
      * @return Calculation result
      */
     ALWAYS_INLINE inline int64_t alu_exec(int64_t a, int64_t b, ALU_Op_enum op, bool op_32 = false);
-
     ALWAYS_INLINE inline void raiseTrap(CSReg_Cause_t cause, uint64_t tval = 0);
-
     ALWAYS_INLINE inline void setGPR(uint8_t GPR_index, int64_t value) {
         assert(GPR_index >= 0 && GPR_index < 32);
-        if (GPR_index) GPR[GPR_index] = value;
+        if (likely(GPR_index)) GPR[GPR_index] = value;
     }
-
     ALWAYS_INLINE inline bool memRead(uint64_t start_addr, uint64_t size, uint8_t *buffer) {
         if (start_addr % size != 0) {
             CSReg_Cause_t cause;
@@ -162,16 +172,17 @@ private:
     ALWAYS_INLINE inline bool sret();
     ALWAYS_INLINE inline bool sfence_vma(uint64_t vaddr, uint64_t asid);
 
-    void reset();
     ALWAYS_INLINE inline bool csr_read(RV_CSR_Addr_enum csr_index, uint64_t &csr_result);
     ALWAYS_INLINE inline bool csr_write(RV_CSR_Addr_enum csr_index, uint64_t csr_data);
     ALWAYS_INLINE inline bool csr_setbit(RV_CSR_Addr_enum csr_index, uint64_t csr_mask);
     ALWAYS_INLINE inline bool csr_clearbit(RV_CSR_Addr_enum csr_index, uint64_t csr_mask);
     ALWAYS_INLINE inline bool csr_op_permission_check(uint16_t csr_index, bool write);
+
+    void reset();
 };
 
 // We have to include those implements here because those functions are marked `inline`
+// so they have to be placed in ONE document
 #include "rv64_common.hpp"
-#include "rv64_exec.hpp"
 #include "rv64_privilege.hpp"
 
