@@ -66,15 +66,6 @@ typedef struct GDB_RSP_Packet {
     std::vector<std::string> paramList;
 } GDB_RSP_Packet_t;
 
-///**
-// * Check if a packet is fully received
-// * @param data Pointer to the received data
-// * @param recv_len Length of
-// * @param chk_sum If packet is integral, on return it will contain the checksum parsed from the data
-// * @return
-// */
-//bool CheckPacketIntegrality(const char* data, size_t recv_len, uint8_t* chk_sum);
-
 
 /**
  * Calculate the check sum of the data.

@@ -18,5 +18,5 @@ public:
      *
      * @return
      */
-    virtual FuncReturnFeedback_e WaitForDebugger_Platform_API() = 0;
+    virtual FuncReturnFeedback_e Debug_Platform_API() = 0;
 };

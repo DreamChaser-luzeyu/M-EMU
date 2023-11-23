@@ -3,6 +3,7 @@
 #include <fstream>
 #include <filesystem>
 
+#include "sdk/gdb_stub/GDBStub.h"
 #include "interface/Platform.h"
 #include "misc/obj_factory.h"
 
@@ -43,7 +44,7 @@ public:
             // --- Dev action
             static int counter = 0;
             counter ++;
-            if(counter == 100) {
+            if(unlikely(counter == 100)) {
                 counter = 0;
                 uartlite->Step_MMIODev_API();
             }
@@ -51,8 +52,9 @@ public:
         return MEMU_OK;
     }
 
-    FuncReturnFeedback_e WaitForDebugger_Platform_API() override {
-
+    FuncReturnFeedback_e Debug_Platform_API() override {
+        GDBStub gdbStub("127.0.0.1", 5679);
+        gdbStub.Debug_GDBStub(core0);
         return MEMU_OK;
     }
     // ----- Constructor & Destructor

@@ -56,7 +56,7 @@ TEST_CASE(test_gdb_wait_for_debugger, "GDB Wait For Debugger Test") {
 
     GDBStub gdbStub("127.0.0.1", 5679);
 //    GDBStub gdbStub(fileno(stdin), fileno(stdout));
-    gdbStub.Debug_GDBStub(core0);
+//    gdbStub.Debug_GDBStub(core0);
 }
 
 TEST_CASE(reg_format_test, "Reg format test") {

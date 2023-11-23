@@ -1,6 +1,6 @@
 #pragma once
 
-ALWAYS_INLINE void RV64Core::preExec() {
+void RV64Core::preExec() {
     // TODO: fill the raise trap
     // ----- Update CSRs
     this->csrMCycleNum++;

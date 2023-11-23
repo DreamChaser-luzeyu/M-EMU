@@ -2,7 +2,7 @@
 #include "RV64Core.h"
 
 FuncReturnFeedback_e RV64Core::Step_CoreAPI() {
-    LOG_DEBUG("CURRENT PC: %016lx", currentProgramCounter);
+//    LOG_DEBUG("CURRENT PC: %016lx", currentProgramCounter);
     bool is_new_pc_set = false;
     bool is_compressed_inst = false;
     bool is_instr_illegal = false;

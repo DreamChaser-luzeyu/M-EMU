@@ -41,8 +41,9 @@ private:
     // ----- CSRs
     // --- M_MODE CSRs
     uint64_t                csrMCycleNum;
-    // Used as a mask, indicating which traps to be routed to S_MODE
-    uint64_t                csrMIntDelegation;         // mideleg, Machine-level Interrupt Delegation Register
+
+    uint64_t                csrMIntDelegation;         ///< mideleg, Machine-level Interrupt Delegation Register
+                                                       ///< Used as a mask, indicating which traps to be routed to S_MODE
     uint64_t                csrMExceptionDelegation;   // medeleg, Machine-level Exception Delegation Register
     uint64_t                csrMachineTrapVal;         // mtval,   Machine Trap Value Register
     CSReg_Cause_t           csrMachineCause;           // mcause
@@ -59,7 +60,6 @@ private:
     CSR_CounterEN_t         csrSCounterEN;             // scounteren
     uint64_t                csrSscratch;               // sscratch
     // --- Shared CSRs
-//    uint64_t                mcycle;
     uint64_t                minstret;
     // The sstatus register is a subset of the mstatus register.
     // In a straightforward implementation, reading or writing any field in sstatus is equivalent to
