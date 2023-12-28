@@ -59,6 +59,7 @@ TEST_CASE(gdb_rsp, "GDB RSP Test") {
 
 }
 
+// --- Register Test Module
 void Main_Test() {
     RunUnitTest_Test();
 }

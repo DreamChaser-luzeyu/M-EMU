@@ -24,7 +24,7 @@ void RV64Core::preExec() {
             // then we want to raise a trap
             // No need to perform mode switching
             CSReg_Cause_t cause;
-            cause.cause = bits_to_int_type(m_mode_int_bits);;
+            cause.cause = bits_to_int_type(m_mode_int_bits);
             cause.interrupt = 1;
             return raiseTrap(cause);
             // **ends here
@@ -69,7 +69,7 @@ void RV64Core::preExec() {
         else {
             // Does not exist interrupts to be delegated to S_MODE
             // We should trap to M_MODE by default
-            if(currentPrivMode < M_MODE) {
+            if(currentPrivMode < M_MODE) { // TODO: Is this correct?
                 // Same as above, we need a trap to switch to M_MODE
                 CSReg_Cause_t cause;
                 cause.cause = int_type;
